@@ -6,7 +6,7 @@ import pickle
 import os
 
 st.set_page_config(
-    page_title="NeuroText AI — LSTM Next-Word Prediction",
+    page_title="Predictive Text Generator",
     page_icon="🔤",
     layout="wide",
     initial_sidebar_state="expanded"
