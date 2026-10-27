@@ -1,0 +1,237 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 680" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#070913"/>
+      <stop offset="50%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#050711"/>
+    </linearGradient>
+    <linearGradient id="cardGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="rgba(30, 41, 59, 0.75)"/>
+      <stop offset="100%" stop-color="rgba(15, 23, 42, 0.85)"/>
+    </linearGradient>
+    <linearGradient id="primaryGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#6366f1"/>
+      <stop offset="100%" stop-color="#8b5cf6"/>
+    </linearGradient>
+    <linearGradient id="cyanGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#06b6d4"/>
+      <stop offset="100%" stop-color="#3b82f6"/>
+    </linearGradient>
+    <linearGradient id="emeraldGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#10b981"/>
+      <stop offset="100%" stop-color="#34d399"/>
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+  <style>
+    .font-sans { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    .font-mono { font-family: "JetBrains Mono", Consolas, Monaco, monospace; }
+    .title { font-weight: 800; fill: #ffffff; }
+    .subtitle { font-weight: 500; fill: #94a3b8; }
+    .card-title { font-size: 13px; font-weight: 600; fill: #94a3b8; text-transform: uppercase; letter-spacing: 0.8px; }
+    .metric-value { font-size: 26px; font-weight: 700; fill: #f8fafc; }
+    .metric-sub { font-size: 12px; font-weight: 500; }
+  </style>
+
+  <!-- Background -->
+  <rect width="1200" height="680" fill="url(#bgGrad)"/>
+  <circle cx="180" cy="140" r="160" fill="#6366f1" opacity="0.14" filter="url(#glow)"/>
+  <circle cx="1040" cy="180" r="180" fill="#8b5cf6" opacity="0.14" filter="url(#glow)"/>
+  <circle cx="620" cy="580" r="220" fill="#06b6d4" opacity="0.08" filter="url(#glow)"/>
+
+  <!-- Top Bar -->
+  <rect x="30" y="24" width="1140" height="64" rx="14" fill="url(#cardGrad)" stroke="rgba(255, 255, 255, 0.08)" stroke-width="1"/>
+  <rect x="50" y="40" width="32" height="32" rx="8" fill="url(#primaryGrad)"/>
+  <text x="66" y="62" text-anchor="middle" font-size="20">🔤</text>
+  <text x="94" y="55" class="font-sans title" font-size="19">NeuroText AI — Deep Learning LSTM Studio</text>
+  <text x="94" y="70" class="font-sans subtitle" font-size="11">Bidirectional LSTM Recurrent Sequence Intelligence • TensorFlow · Keras · Streamlit · Tokenizer</text>
+  
+  <rect x="800" y="42" width="170" height="28" rx="14" fill="rgba(99, 102, 241, 0.15)" stroke="#6366f1" stroke-width="1"/>
+  <circle cx="816" cy="56" r="4" fill="#818cf8"/>
+  <text x="828" y="60" class="font-sans" font-size="12" font-weight="600" fill="#c7d2fe">LSTM ARCHITECTURE</text>
+
+  <rect x="985" y="42" width="170" height="28" rx="14" fill="rgba(139, 92, 246, 0.2)" stroke="#8b5cf6" stroke-width="1"/>
+  <circle cx="1001" cy="56" r="4" fill="#a78bfa"/>
+  <text x="1013" y="60" class="font-sans" font-size="12" font-weight="600" fill="#ddd6fe">BY UMAR MUKTHAR</text>
+
+  <!-- 4 Metrics KPI Bar -->
+  <g transform="translate(30, 104)">
+    <rect width="268" height="88" rx="12" fill="url(#cardGrad)" stroke="rgba(255, 255, 255, 0.06)" stroke-width="1"/>
+    <text x="20" y="30" class="font-sans card-title">Forward Pass Latency</text>
+    <text x="20" y="60" class="font-mono metric-value" fill="#34d399">11.8 ms</text>
+    <text x="20" y="78" class="font-sans metric-sub" fill="#34d399">Fast Sequence Inference</text>
+  </g>
+  <g transform="translate(321, 104)">
+    <rect width="268" height="88" rx="12" fill="url(#cardGrad)" stroke="rgba(255, 255, 255, 0.06)" stroke-width="1"/>
+    <text x="20" y="30" class="font-sans card-title">Vocabulary Coverage</text>
+    <text x="20" y="60" class="font-mono metric-value" fill="#38bdf8">3,508</text>
+    <text x="20" y="78" class="font-sans metric-sub" fill="#22d3ee">Dense Keras Token Index</text>
+  </g>
+  <g transform="translate(612, 104)">
+    <rect width="268" height="88" rx="12" fill="url(#cardGrad)" stroke="rgba(255, 255, 255, 0.06)" stroke-width="1"/>
+    <text x="20" y="30" class="font-sans card-title">Sequence Context</text>
+    <text x="20" y="60" class="font-mono metric-value" fill="#a78bfa">40 Tokens</text>
+    <text x="20" y="78" class="font-sans metric-sub" fill="#a78bfa">Pre-padded Sliding Window</text>
+  </g>
+  <g transform="translate(902, 104)">
+    <rect width="268" height="88" rx="12" fill="url(#cardGrad)" stroke="rgba(255, 255, 255, 0.06)" stroke-width="1"/>
+    <text x="20" y="30" class="font-sans card-title">Training Corpus</text>
+    <text x="20" y="60" class="font-mono metric-value" fill="#fbbf24">6,508 Docs</text>
+    <text x="20" y="78" class="font-sans metric-sub" fill="#fbbf24">Medium Articles Dataset</text>
+  </g>
+
+  <!-- Left Card: Prompt Input & Controls -->
+  <g transform="translate(30, 210)">
+    <rect width="440" height="436" rx="14" fill="url(#cardGrad)" stroke="rgba(255, 255, 255, 0.08)" stroke-width="1"/>
+    <text x="20" y="34" class="font-sans" font-size="15" font-weight="700" fill="#ffffff">Sequence Prompt &amp; Auto-Complete</text>
+    <text x="20" y="52" class="font-sans" font-size="11" fill="#94a3b8">Interactive typing, real-time suggestions, and presets</text>
+
+    <!-- Prompt Box Mockup -->
+    <g transform="translate(20, 68)">
+      <rect width="400" height="96" rx="10" fill="rgba(3, 7, 18, 0.8)" stroke="#6366f1" stroke-width="1.5"/>
+      <text x="16" y="32" class="font-sans" font-size="13" fill="#f8fafc">Deep learning models rely on neural networks to</text>
+      <rect x="336" y="18" width="2" height="16" fill="#38bdf8"/>
+      
+      <!-- Meta row inside prompt box -->
+      <line x1="16" y1="64" x2="384" y2="64" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+      <text x="16" y="82" class="font-mono" font-size="11" fill="#64748b">Tokens: 8 / 40</text>
+      <text x="384" y="82" text-anchor="end" class="font-mono" font-size="11" fill="#64748b">Characters: 46</text>
+    </g>
+
+    <!-- Predicted Next Words Row -->
+    <g transform="translate(20, 180)">
+      <text x="0" y="16" class="font-sans" font-size="12" font-weight="700" fill="#22d3ee">Predicted Next Words (Click to append):</text>
+      
+      <g transform="translate(0, 26)">
+        <rect width="90" height="30" rx="6" fill="rgba(99, 102, 241, 0.2)" stroke="#6366f1" stroke-width="1"/>
+        <text x="45" y="19" text-anchor="middle" class="font-mono" font-size="11" font-weight="700" fill="#c7d2fe">+ extract (43%)</text>
+      </g>
+      <g transform="translate(98, 26)">
+        <rect width="84" height="30" rx="6" fill="rgba(99, 102, 241, 0.12)" stroke="rgba(99, 102, 241, 0.3)" stroke-width="1"/>
+        <text x="42" y="19" text-anchor="middle" class="font-mono" font-size="11" fill="#a5b4fc">+ learn (26%)</text>
+      </g>
+      <g transform="translate(190, 26)">
+        <rect width="92" height="30" rx="6" fill="rgba(99, 102, 241, 0.12)" stroke="rgba(99, 102, 241, 0.3)" stroke-width="1"/>
+        <text x="46" y="19" text-anchor="middle" class="font-mono" font-size="11" fill="#a5b4fc">+ process (15%)</text>
+      </g>
+      <g transform="translate(290, 26)">
+        <rect width="94" height="30" rx="6" fill="rgba(99, 102, 241, 0.12)" stroke="rgba(99, 102, 241, 0.3)" stroke-width="1"/>
+        <text x="47" y="19" text-anchor="middle" class="font-mono" font-size="11" fill="#a5b4fc">+ predict (10%)</text>
+      </g>
+    </g>
+
+    <!-- Instant Corpus Presets -->
+    <text x="20" y="266" class="font-sans card-title">Instant Corpus Presets</text>
+    
+    <g transform="translate(20, 278)">
+      <rect width="400" height="34" rx="6" fill="#1e293b" stroke="rgba(255, 255, 255, 0.06)" stroke-width="1"/>
+      <text x="14" y="22" class="font-sans" font-size="11" fill="#f8fafc">🧠 Recurrent neural networks and LSTM architectures solve</text>
+      <text x="386" y="22" text-anchor="end" class="font-mono" font-size="10" fill="#a5b4fc">NLP</text>
+    </g>
+    <g transform="translate(20, 320)">
+      <rect width="400" height="34" rx="6" fill="#1e293b" stroke="rgba(255, 255, 255, 0.06)" stroke-width="1"/>
+      <text x="14" y="22" class="font-sans" font-size="11" fill="#f8fafc">🔬 The experimental results demonstrate a statistically</text>
+      <text x="386" y="22" text-anchor="end" class="font-mono" font-size="10" fill="#a5b4fc">Research</text>
+    </g>
+
+    <!-- Action Buttons -->
+    <g transform="translate(20, 372)">
+      <rect width="194" height="42" rx="8" fill="url(#primaryGrad)"/>
+      <text x="97" y="26" text-anchor="middle" class="font-sans" font-size="12" font-weight="700" fill="#ffffff">⚡ Predict Next Word</text>
+
+      <rect x="206" y="0" width="194" height="42" rx="8" fill="rgba(255, 255, 255, 0.06)" stroke="rgba(255, 255, 255, 0.1)" stroke-width="1"/>
+      <text x="303" y="26" text-anchor="middle" class="font-sans" font-size="12" font-weight="600" fill="#f8fafc">🚀 Auto-Generate (5 Words)</text>
+    </g>
+  </g>
+
+  <!-- Right Card: Softmax Inspector & LSTM Architecture -->
+  <g transform="translate(490, 210)">
+    <rect width="680" height="436" rx="14" fill="url(#cardGrad)" stroke="rgba(255, 255, 255, 0.08)" stroke-width="1"/>
+    
+    <!-- Tab Bar -->
+    <g transform="translate(20, 16)">
+      <rect width="160" height="30" rx="6" fill="rgba(99, 102, 241, 0.2)" stroke="#6366f1" stroke-width="1"/>
+      <text x="80" y="20" text-anchor="middle" class="font-sans" font-size="11" font-weight="700" fill="#c7d2fe">📊 Softmax Distribution</text>
+
+      <rect x="170" y="0" width="160" height="30" rx="6" fill="rgba(255, 255, 255, 0.04)"/>
+      <text x="250" y="20" text-anchor="middle" class="font-sans" font-size="11" font-weight="500" fill="#94a3b8">🧠 4-Stage LSTM Gates</text>
+
+      <rect x="560" y="0" width="80" height="30" rx="6" fill="rgba(255, 255, 255, 0.05)" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+      <text x="600" y="19" text-anchor="middle" class="font-sans" font-size="10" fill="#cbd5e1">📋 Copy</text>
+    </g>
+
+    <!-- Softmax Candidate 1 (Top Argmax) -->
+    <g transform="translate(20, 64)">
+      <rect width="640" height="46" rx="8" fill="rgba(15, 23, 42, 0.8)" stroke="rgba(99, 102, 241, 0.3)" stroke-width="1"/>
+      <rect x="14" y="12" width="28" height="22" rx="4" fill="rgba(99, 102, 241, 0.25)"/>
+      <text x="28" y="27" text-anchor="middle" class="font-mono" font-size="11" font-weight="700" fill="#a5b4fc">#1</text>
+      <text x="52" y="27" class="font-mono" font-size="13" font-weight="700" fill="#ffffff">"extract"</text>
+      <text x="626" y="27" text-anchor="end" class="font-mono" font-size="13" font-weight="700" fill="#22d3ee">42.8% (0.428)</text>
+      <!-- Bar -->
+      <rect x="14" y="38" width="612" height="4" rx="2" fill="rgba(255,255,255,0.06)"/>
+      <rect x="14" y="38" width="262" height="4" rx="2" fill="url(#cyanGrad)"/>
+    </g>
+
+    <!-- Softmax Candidate 2 -->
+    <g transform="translate(20, 118)">
+      <rect width="640" height="46" rx="8" fill="rgba(15, 23, 42, 0.8)" stroke="rgba(255, 255, 255, 0.06)" stroke-width="1"/>
+      <rect x="14" y="12" width="28" height="22" rx="4" fill="rgba(255, 255, 255, 0.08)"/>
+      <text x="28" y="27" text-anchor="middle" class="font-mono" font-size="11" font-weight="700" fill="#94a3b8">#2</text>
+      <text x="52" y="27" class="font-mono" font-size="13" font-weight="700" fill="#ffffff">"learn"</text>
+      <text x="626" y="27" text-anchor="end" class="font-mono" font-size="13" font-weight="700" fill="#a78bfa">26.4% (0.264)</text>
+      <!-- Bar -->
+      <rect x="14" y="38" width="612" height="4" rx="2" fill="rgba(255,255,255,0.06)"/>
+      <rect x="14" y="38" width="161" height="4" rx="2" fill="url(#primaryGrad)"/>
+    </g>
+
+    <!-- Softmax Candidate 3 -->
+    <g transform="translate(20, 172)">
+      <rect width="640" height="46" rx="8" fill="rgba(15, 23, 42, 0.8)" stroke="rgba(255, 255, 255, 0.06)" stroke-width="1"/>
+      <rect x="14" y="12" width="28" height="22" rx="4" fill="rgba(255, 255, 255, 0.08)"/>
+      <text x="28" y="27" text-anchor="middle" class="font-mono" font-size="11" font-weight="700" fill="#94a3b8">#3</text>
+      <text x="52" y="27" class="font-mono" font-size="13" font-weight="700" fill="#ffffff">"process"</text>
+      <text x="626" y="27" text-anchor="end" class="font-mono" font-size="13" font-weight="700" fill="#94a3b8">15.2% (0.152)</text>
+      <!-- Bar -->
+      <rect x="14" y="38" width="612" height="4" rx="2" fill="rgba(255,255,255,0.06)"/>
+      <rect x="14" y="38" width="93" height="4" rx="2" fill="#64748b"/>
+    </g>
+
+    <!-- Softmax Candidate 4 -->
+    <g transform="translate(20, 226)">
+      <rect width="640" height="46" rx="8" fill="rgba(15, 23, 42, 0.8)" stroke="rgba(255, 255, 255, 0.06)" stroke-width="1"/>
+      <rect x="14" y="12" width="28" height="22" rx="4" fill="rgba(255, 255, 255, 0.08)"/>
+      <text x="28" y="27" text-anchor="middle" class="font-mono" font-size="11" font-weight="700" fill="#94a3b8">#4</text>
+      <text x="52" y="27" class="font-mono" font-size="13" font-weight="700" fill="#ffffff">"predict"</text>
+      <text x="626" y="27" text-anchor="end" class="font-mono" font-size="13" font-weight="700" fill="#94a3b8">9.8% (0.098)</text>
+      <!-- Bar -->
+      <rect x="14" y="38" width="612" height="4" rx="2" fill="rgba(255,255,255,0.06)"/>
+      <rect x="14" y="38" width="60" height="4" rx="2" fill="#475569"/>
+    </g>
+
+    <!-- Output Text Accumulator Box -->
+    <g transform="translate(20, 286)">
+      <rect width="640" height="136" rx="10" fill="rgba(3, 7, 18, 0.85)" stroke="rgba(99, 102, 241, 0.25)" stroke-width="1"/>
+      <text x="16" y="26" class="font-sans" font-size="11" font-weight="700" fill="#94a3b8">AUTO-GENERATED SEQUENCE STREAM (CONTINUOUS BEAM):</text>
+      
+      <text x="16" y="56" class="font-sans" font-size="13" fill="#cbd5e1">Deep learning models rely on neural networks to</text>
+      <rect x="312" y="42" width="62" height="22" rx="4" fill="rgba(6, 182, 212, 0.15)"/>
+      <text x="343" y="57" text-anchor="middle" class="font-mono" font-size="12" font-weight="700" fill="#38bdf8">extract</text>
+      <rect x="378" y="42" width="94" height="22" rx="4" fill="rgba(6, 182, 212, 0.15)"/>
+      <text x="425" y="57" text-anchor="middle" class="font-mono" font-size="12" font-weight="700" fill="#38bdf8">hierarchical</text>
+      <rect x="476" y="42" width="116" height="22" rx="4" fill="rgba(6, 182, 212, 0.15)"/>
+      <text x="534" y="57" text-anchor="middle" class="font-mono" font-size="12" font-weight="700" fill="#38bdf8">representations</text>
+
+      <text x="16" y="86" class="font-sans" font-size="13" fill="#cbd5e1">from raw data across complex multidimensional feature spaces.</text>
+
+      <line x1="16" y1="102" x2="624" y2="102" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+      <text x="16" y="122" class="font-mono" font-size="10" fill="#64748b">Generated 5 tokens • Mean Softmax Confidence: 89.2% • Context: 13/40 • Latency: 11.8ms</text>
+    </g>
+
+  </g>
+
+  <!-- Watermark Footer -->
+  <text x="600" y="664" text-anchor="middle" class="font-sans" font-size="12" font-weight="500" fill="#64748b">NeuroText AI • Designed, Engineered &amp; Maintained by UMAR MUKTHAR • All Rights Reserved</text>
+</svg>

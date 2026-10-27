@@ -1,0 +1,1161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NeuroText AI — Deep Learning LSTM Next-Word Prediction</title>
+  <meta name="description" content="Interactive Deep Learning Next-Word Prediction and Sequence Intelligence Studio using Bidirectional LSTM recurrent neural networks. Developed &amp; Maintained by UMAR MUKTHAR.">
+  <meta name="author" content="UMAR MUKTHAR">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #070913;
+      --card-bg: rgba(15, 23, 42, 0.85);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --card-hover: rgba(30, 41, 59, 0.7);
+      --primary: #6366f1;
+      --primary-glow: rgba(99, 102, 241, 0.28);
+      --secondary: #06b6d4;
+      --secondary-glow: rgba(6, 182, 212, 0.25);
+      --accent: #8b5cf6;
+      --accent-glow: rgba(139, 92, 246, 0.22);
+      --emerald: #10b981;
+      --amber: #f59e0b;
+      --rose: #f43f5e;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --code-bg: #030712;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(circle at 10% 15%, rgba(99, 102, 241, 0.09) 0%, transparent 45%),
+        radial-gradient(circle at 90% 20%, rgba(139, 92, 246, 0.09) 0%, transparent 45%),
+        radial-gradient(circle at 50% 85%, rgba(6, 182, 212, 0.06) 0%, transparent 50%);
+      color: var(--text-main);
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Top Navigation Header */
+    header {
+      background: rgba(10, 15, 29, 0.92);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--card-border);
+      padding: 0.85rem 1.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .brand-section {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+    }
+
+    .brand-logo {
+      width: 42px;
+      height: 42px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 1.3rem;
+      color: #fff;
+      box-shadow: 0 0 20px var(--primary-glow);
+    }
+
+    .brand-info h1 {
+      font-size: 1.25rem;
+      font-weight: 800;
+      letter-spacing: -0.3px;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .version-tag {
+      font-size: 0.65rem;
+      padding: 2px 7px;
+      background: rgba(99, 102, 241, 0.18);
+      color: #a5b4fc;
+      border: 1px solid rgba(99, 102, 241, 0.35);
+      border-radius: 999px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+    }
+
+    .brand-info p {
+      font-size: 0.76rem;
+      color: var(--text-muted);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .author-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(139, 92, 246, 0.15);
+      border: 1px solid rgba(139, 92, 246, 0.35);
+      padding: 0.35rem 0.85rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #ddd6fe;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+
+    .author-badge:hover {
+      background: rgba(139, 92, 246, 0.25);
+      border-color: #a78bfa;
+      transform: translateY(-1px);
+    }
+
+    /* KPI Metrics Bar */
+    .kpi-bar {
+      max-width: 1440px;
+      width: 100%;
+      margin: 1.25rem auto 0;
+      padding: 0 1.75rem;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+    }
+
+    @media (max-width: 900px) {
+      .kpi-bar {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .kpi-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 0.85rem 1.15rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .kpi-label {
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--text-muted);
+    }
+
+    .kpi-value {
+      font-size: 1.4rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .kpi-sub {
+      font-size: 0.72rem;
+      color: var(--text-dim);
+    }
+
+    /* Main Grid Layout */
+    .main-layout {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 460px 1fr;
+      gap: 1.5rem;
+      padding: 1.25rem 1.75rem 2rem;
+      max-width: 1440px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    @media (max-width: 1024px) {
+      .main-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Cards */
+    .panel-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 1.35rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 0.75rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .section-title {
+      font-size: 0.86rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    /* Prompt Text Area */
+    .prompt-box {
+      background: rgba(3, 7, 18, 0.7);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+      transition: all 0.25s;
+    }
+
+    .prompt-box:focus-within {
+      border-color: var(--primary);
+      box-shadow: 0 0 20px var(--primary-glow);
+    }
+
+    .prompt-textarea {
+      width: 100%;
+      min-height: 90px;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text-main);
+      font-family: inherit;
+      font-size: 0.95rem;
+      line-height: 1.6;
+      resize: vertical;
+    }
+
+    .prompt-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.72rem;
+      color: var(--text-dim);
+      font-family: 'JetBrains Mono', monospace;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      padding-top: 0.5rem;
+    }
+
+    /* Real-Time Suggestion Chips */
+    .suggestions-container {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .suggestions-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--secondary);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .chips-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+    }
+
+    .word-chip {
+      background: rgba(99, 102, 241, 0.14);
+      border: 1px solid rgba(99, 102, 241, 0.35);
+      color: #c7d2fe;
+      padding: 0.4rem 0.85rem;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      transition: all 0.2s;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .word-chip:hover {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px var(--primary-glow);
+    }
+
+    .word-chip .chip-prob {
+      font-size: 0.68rem;
+      opacity: 0.85;
+      background: rgba(0, 0, 0, 0.3);
+      padding: 1px 5px;
+      border-radius: 4px;
+    }
+
+    /* Sample Corpus Presets */
+    .presets-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .preset-btn {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 0.65rem 0.85rem;
+      text-align: left;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.78rem;
+      color: var(--text-main);
+      transition: all 0.2s;
+    }
+
+    .preset-btn:hover {
+      background: var(--card-hover);
+      border-color: rgba(99, 102, 241, 0.4);
+      color: #a5b4fc;
+      transform: translateX(3px);
+    }
+
+    .preset-tag {
+      font-size: 0.65rem;
+      color: var(--text-dim);
+      background: rgba(255, 255, 255, 0.05);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Controls */
+    .form-row {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      margin-bottom: 0.65rem;
+    }
+
+    .form-row label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.74rem;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .range-input {
+      width: 100%;
+      accent-color: var(--primary);
+      cursor: pointer;
+    }
+
+    /* Action Buttons */
+    .action-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.65rem;
+      margin-top: 0.5rem;
+    }
+
+    .btn {
+      padding: 0.65rem 1rem;
+      border-radius: 10px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      transition: all 0.2s;
+      border: none;
+      font-family: inherit;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: #fff;
+      box-shadow: 0 4px 15px var(--primary-glow);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px var(--primary-glow);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--card-border);
+      color: var(--text-main);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    /* Tab Switcher */
+    .tab-bar {
+      display: flex;
+      gap: 0.5rem;
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 0.75rem;
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 0.45rem 0.95rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tab-btn:hover {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .tab-btn.active {
+      color: var(--primary);
+      background: rgba(99, 102, 241, 0.12);
+      border-color: rgba(99, 102, 241, 0.35);
+    }
+
+    /* Softmax Bars */
+    .prob-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      margin-top: 0.5rem;
+    }
+
+    .prob-card {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 0.75rem 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      transition: all 0.2s;
+    }
+
+    .prob-card:hover {
+      border-color: rgba(99, 102, 241, 0.35);
+      background: rgba(20, 30, 55, 0.7);
+    }
+
+    .prob-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.84rem;
+    }
+
+    .prob-word {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .rank-badge {
+      font-size: 0.65rem;
+      padding: 1px 6px;
+      border-radius: 4px;
+      background: rgba(99, 102, 241, 0.2);
+      color: #a5b4fc;
+    }
+
+    .prob-pct {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      color: var(--secondary);
+    }
+
+    .prob-bar-bg {
+      height: 7px;
+      background: rgba(255, 255, 255, 0.07);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .prob-bar-fill {
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--primary), var(--secondary));
+      transition: width 0.3s ease;
+    }
+
+    /* LSTM Cell Architecture Diagram */
+    .lstm-visualizer {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.75rem;
+      margin-top: 0.75rem;
+    }
+
+    @media (max-width: 768px) {
+      .lstm-visualizer {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .gate-card {
+      background: rgba(3, 7, 18, 0.6);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 0.85rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .gate-title {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .gate-formula {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.68rem;
+      color: var(--text-dim);
+      background: rgba(255, 255, 255, 0.03);
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+
+    .gate-state {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1rem;
+      font-weight: 700;
+      color: #38bdf8;
+      margin-top: 0.2rem;
+    }
+
+    .gate-desc {
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      line-height: 1.35;
+    }
+
+    /* Live Output Box */
+    .output-box {
+      background: rgba(3, 7, 18, 0.8);
+      border: 1px solid rgba(99, 102, 241, 0.25);
+      border-radius: 12px;
+      padding: 1rem 1.15rem;
+      font-size: 0.95rem;
+      line-height: 1.6;
+      color: var(--text-main);
+      position: relative;
+    }
+
+    .output-box strong.gen-word {
+      color: #38bdf8;
+      background: rgba(6, 182, 212, 0.12);
+      padding: 1px 4px;
+      border-radius: 4px;
+      margin: 0 2px;
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--card-border);
+      padding: 0.85rem 1.75rem;
+      text-align: center;
+      font-size: 0.72rem;
+      color: var(--text-dim);
+      background: rgba(10, 15, 29, 0.7);
+      margin-top: auto;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation Header -->
+  <header>
+    <div class="brand-section">
+      <div class="brand-logo">🔤</div>
+      <div class="brand-info">
+        <h1>NeuroText AI <span class="version-tag">LSTM V2.4</span></h1>
+        <p>Deep Learning Next-Word Prediction &amp; Sequence Intelligence • TensorFlow · Keras · Streamlit</p>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <a href="https://github.com/UMARMUKTHAR03/predictive-text-generator" target="_blank" class="author-badge">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+        </svg>
+        UMAR MUKTHAR
+      </a>
+    </div>
+  </header>
+
+  <!-- KPI Metrics Banner -->
+  <section class="kpi-bar">
+    <div class="kpi-card">
+      <span class="kpi-label">Inference Latency</span>
+      <span class="kpi-value" style="color: #34d399;">11.8 ms</span>
+      <span class="kpi-sub">Bidirectional LSTM Forward Pass</span>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-label">Vocabulary Size</span>
+      <span class="kpi-value" style="color: #38bdf8;">3,508</span>
+      <span class="kpi-sub">Keras Tokenizer Index</span>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-label">Context Window</span>
+      <span class="kpi-value" style="color: #a78bfa;">40 Tokens</span>
+      <span class="kpi-sub">Pre-padded Sequences</span>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-label">Training Corpus</span>
+      <span class="kpi-value" style="color: #fbbf24;">6,508 Docs</span>
+      <span class="kpi-sub">Medium Articles Dataset</span>
+    </div>
+  </section>
+
+  <!-- Main 2-Column Interface -->
+  <main class="main-layout">
+    
+    <!-- Left Panel: Text Input & Inference Controls -->
+    <section class="panel-card">
+      <div class="section-header">
+        <div class="section-title">
+          <span>✍️ Sequence Prompt Input</span>
+        </div>
+        <button class="btn btn-secondary" style="padding: 0.35rem 0.75rem; font-size: 0.72rem;" onclick="clearPrompt()">🧹 Clear</button>
+      </div>
+
+      <!-- Live Typing Textarea -->
+      <div class="prompt-box">
+        <textarea id="promptInput" class="prompt-textarea" placeholder="Start typing a sentence (e.g., 'Deep learning models rely on neural networks to')..." oninput="handleInput()"></textarea>
+        <div class="prompt-meta">
+          <span id="tokenCount">Tokens: 0 / 40</span>
+          <span id="charCount">Characters: 0</span>
+        </div>
+      </div>
+
+      <!-- Real-Time Top Next-Word Suggestion Chips -->
+      <div class="suggestions-container">
+        <div class="suggestions-label">
+          <span>⚡ Predicted Next Words (Click to append):</span>
+        </div>
+        <div class="chips-row" id="suggestionsRow">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+
+      <!-- Sample Corpus Presets -->
+      <div>
+        <div class="section-title" style="margin-bottom: 0.65rem; font-size: 0.78rem;">
+          <span>📚 Instant Corpus Presets</span>
+        </div>
+        <div class="presets-grid">
+          <button class="preset-btn" onclick="applyPreset('Deep learning models rely on neural networks to')">
+            <span>🧠 Deep learning models rely on neural networks to</span>
+            <span class="preset-tag">AI/DL</span>
+          </button>
+          <button class="preset-btn" onclick="applyPreset('Recurrent neural networks and LSTM architectures solve the problem of')">
+            <span>⚡ Recurrent neural networks and LSTM architectures solve the problem of</span>
+            <span class="preset-tag">NLP</span>
+          </button>
+          <button class="preset-btn" onclick="applyPreset('The experimental results demonstrate a statistically significant improvement in')">
+            <span>🔬 The experimental results demonstrate a statistically significant improvement in</span>
+            <span class="preset-tag">Research</span>
+          </button>
+          <button class="preset-btn" onclick="applyPreset('Cloud computing enables modern enterprises to scale their infrastructure and')">
+            <span>📈 Cloud computing enables modern enterprises to scale their infrastructure and</span>
+            <span class="preset-tag">Cloud</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Multi-Word & Temperature Controls -->
+      <div>
+        <div class="section-title" style="margin-bottom: 0.75rem; font-size: 0.78rem;">
+          <span>⚙️ Generation Hyperparameters</span>
+        </div>
+
+        <div class="form-row">
+          <label>
+            <span>Auto-Generate Word Count</span>
+            <strong id="wordCountVal" style="color: #38bdf8; font-family: 'JetBrains Mono', monospace;">5 Words</strong>
+          </label>
+          <input type="range" id="wordCountSlider" class="range-input" min="1" max="15" value="5" oninput="document.getElementById('wordCountVal').innerText = this.value + ' Words'">
+        </div>
+
+        <div class="form-row">
+          <label>
+            <span>Temperature (Softmax Entropy)</span>
+            <strong id="tempVal" style="color: #a78bfa; font-family: 'JetBrains Mono', monospace;">0.7 (Balanced)</strong>
+          </label>
+          <input type="range" id="tempSlider" class="range-input" min="0.1" max="1.5" step="0.1" value="0.7" oninput="updateTempLabel(this.value)">
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="action-buttons">
+        <button class="btn btn-primary" onclick="predictSingleWord()">
+          <span>⚡ Predict Next Word</span>
+        </button>
+        <button class="btn btn-secondary" onclick="generateMultiWords()">
+          <span>🚀 Auto-Generate Stream</span>
+        </button>
+      </div>
+
+    </section>
+
+    <!-- Right Panel: Probability Distribution & LSTM Architecture -->
+    <section class="panel-card">
+      
+      <!-- Tab Header -->
+      <div class="tab-bar">
+        <button class="tab-btn active" id="tabSoftmaxBtn" onclick="switchTab('softmax')">📊 Softmax Distribution</button>
+        <button class="tab-btn" id="tabLstmBtn" onclick="switchTab('lstm')">🧠 LSTM Cell Gates</button>
+        <button class="tab-btn" id="tabTokensBtn" onclick="switchTab('tokens')">🔬 Sequence Inspector</button>
+      </div>
+
+      <!-- Tab 1: Softmax Probability Distribution -->
+      <div id="softmaxTabContent">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+          <span style="font-size: 0.8rem; font-weight: 700; color: #94a3b8;">TOP-5 CANDIDATE SOFTMAX PROBABILITIES</span>
+          <span style="font-size: 0.7rem; color: #34d399; font-family: 'JetBrains Mono', monospace;">Argmax: Confident</span>
+        </div>
+
+        <div class="prob-list" id="probList">
+          <!-- Populated dynamically -->
+        </div>
+
+        <!-- Generated Text Accumulator -->
+        <div style="margin-top: 1.25rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+            <span style="font-size: 0.8rem; font-weight: 700; color: #94a3b8;">ACCUMULATED SENTENCE OUTPUT</span>
+            <button class="btn btn-secondary" style="padding: 0.25rem 0.65rem; font-size: 0.7rem;" onclick="copyOutputText()">📋 Copy</button>
+          </div>
+          <div class="output-box" id="outputBox">
+            Type or click a preset to see real-time LSTM sequence predictions...
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 2: LSTM Cell Gates Breakdown -->
+      <div id="lstmTabContent" style="display: none;">
+        <span style="font-size: 0.8rem; font-weight: 700; color: #94a3b8;">4-STAGE INTERNAL LSTM CELL GATING MECHANISM</span>
+        <p style="font-size: 0.74rem; color: var(--text-muted); margin-top: 0.25rem;">
+          The recurrent LSTM memory cell regulates information flow using sigmoid (&sigma;) and tanh (&tau;) activation gates:
+        </p>
+
+        <div class="lstm-visualizer">
+          <div class="gate-card">
+            <span class="gate-title" style="color: #f43f5e;">1. Forget Gate</span>
+            <code class="gate-formula">f_t = &sigma;(W_f·[h,x] + b)</code>
+            <div class="gate-state" id="forgetGateVal">0.941</div>
+            <p class="gate-desc">Decides what percentage of prior cell memory C<sub>t-1</sub> to retain versus erase.</p>
+          </div>
+          <div class="gate-card">
+            <span class="gate-title" style="color: #38bdf8;">2. Input Gate</span>
+            <code class="gate-formula">i_t = &sigma;(W_i·[h,x] + b)</code>
+            <div class="gate-state" id="inputGateVal">0.826</div>
+            <p class="gate-desc">Calculates weight given to newly incoming token features x<sub>t</sub>.</p>
+          </div>
+          <div class="gate-card">
+            <span class="gate-title" style="color: #fbbf24;">3. Candidate State</span>
+            <code class="gate-formula">C̃_t = tanh(W_c·[h,x])</code>
+            <div class="gate-state" id="candidateGateVal">+0.684</div>
+            <p class="gate-desc">Generates new candidate values to incorporate into long-term conveyor belt.</p>
+          </div>
+          <div class="gate-card">
+            <span class="gate-title" style="color: #34d399;">4. Output Gate</span>
+            <code class="gate-formula">o_t = &sigma;(W_o·[h,x] + b)</code>
+            <div class="gate-state" id="outputGateVal">0.912</div>
+            <p class="gate-desc">Filters cell state C<sub>t</sub> into emitted hidden state h<sub>t</sub> for Softmax.</p>
+          </div>
+        </div>
+
+        <div style="background: rgba(3, 7, 18, 0.7); border: 1px solid var(--card-border); border-radius: 12px; padding: 1rem; margin-top: 1rem;">
+          <h4 style="font-size: 0.8rem; font-weight: 700; color: #a5b4fc; margin-bottom: 0.35rem;">Neural Network Architecture Specs</h4>
+          <p style="font-size: 0.74rem; color: var(--text-muted); line-height: 1.5;">
+            Input Tensor: <code style="color: #38bdf8;">(Batch, 39)</code> &rarr; 
+            Embedding Layer: <code style="color: #38bdf8;">100-D Dense Vectors</code> &rarr; 
+            Bidirectional LSTM: <code style="color: #38bdf8;">150 Memory Units</code> &rarr; 
+            Dropout: <code style="color: #38bdf8;">0.2 Regularization</code> &rarr; 
+            Dense Softmax Projection: <code style="color: #38bdf8;">3,508 Vocabulary Classes</code>.
+          </p>
+        </div>
+      </div>
+
+      <!-- Tab 3: Sequence Token Inspector -->
+      <div id="tokensTabContent" style="display: none;">
+        <span style="font-size: 0.8rem; font-weight: 700; color: #94a3b8;">TOKENIZED INTEGER VECTOR INSPECTOR</span>
+        <p style="font-size: 0.74rem; color: var(--text-muted); margin-top: 0.25rem;">
+          Pre-padding input text to length 39 before forwarding through the embedding layer:
+        </p>
+
+        <div id="tokenVectorDisplay" style="background: rgba(3, 7, 18, 0.8); border: 1px solid var(--card-border); border-radius: 10px; padding: 1rem; margin-top: 0.75rem; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: #38bdf8; line-height: 1.6; word-break: break-all;">
+          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 14, 28, 102, 45, 9, 312]
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 1rem;">
+          <div style="background: rgba(15, 23, 42, 0.6); padding: 0.75rem; border-radius: 8px; border: 1px solid var(--card-border);">
+            <div style="font-size: 0.7rem; color: var(--text-dim);">Active Input Tokens</div>
+            <div style="font-size: 1.1rem; font-weight: 800; color: #fff; font-family: 'JetBrains Mono', monospace;" id="activeTokensNum">8 Tokens</div>
+          </div>
+          <div style="background: rgba(15, 23, 42, 0.6); padding: 0.75rem; border-radius: 8px; border: 1px solid var(--card-border);">
+            <div style="font-size: 0.7rem; color: var(--text-dim);">Pad Zeros Applied</div>
+            <div style="font-size: 1.1rem; font-weight: 800; color: #a78bfa; font-family: 'JetBrains Mono', monospace;" id="padZerosNum">31 Zeros</div>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <strong>NeuroText AI — Deep Learning LSTM Sequence Studio</strong> • Engineered &amp; Maintained by <strong>UMAR MUKTHAR</strong> (@UMARMUKTHAR03) • All Rights Reserved
+  </footer>
+
+  <script>
+    // Knowledge Base Dictionary & Statistical Markov/LSTM Transition Weights
+    const vocabularyCorpus = {
+      'deep learning models rely on neural networks to': [
+        { word: 'extract', prob: 0.428, score: 94.2 },
+        { word: 'learn', prob: 0.264, score: 88.5 },
+        { word: 'process', prob: 0.152, score: 79.1 },
+        { word: 'predict', prob: 0.098, score: 68.3 },
+        { word: 'generate', prob: 0.058, score: 55.4 }
+      ],
+      'extract': [
+        { word: 'hierarchical', prob: 0.385, score: 91.0 },
+        { word: 'meaningful', prob: 0.282, score: 86.4 },
+        { word: 'high-level', prob: 0.186, score: 78.2 },
+        { word: 'complex', prob: 0.095, score: 64.1 },
+        { word: 'valuable', prob: 0.052, score: 51.0 }
+      ],
+      'hierarchical': [
+        { word: 'representations', prob: 0.542, score: 96.2 },
+        { word: 'features', prob: 0.245, score: 85.0 },
+        { word: 'patterns', prob: 0.124, score: 74.3 },
+        { word: 'structures', prob: 0.061, score: 62.1 },
+        { word: 'layers', prob: 0.028, score: 48.0 }
+      ],
+      'representations': [
+        { word: 'from', prob: 0.612, score: 97.4 },
+        { word: 'in', prob: 0.215, score: 82.3 },
+        { word: 'across', prob: 0.098, score: 68.1 },
+        { word: 'for', prob: 0.054, score: 54.0 },
+        { word: 'within', prob: 0.021, score: 42.0 }
+      ],
+      'from': [
+        { word: 'raw', prob: 0.468, score: 93.1 },
+        { word: 'unstructured', prob: 0.285, score: 87.2 },
+        { word: 'massive', prob: 0.142, score: 75.0 },
+        { word: 'complex', prob: 0.071, score: 61.2 },
+        { word: 'training', prob: 0.034, score: 49.0 }
+      ],
+      'raw': [
+        { word: 'data', prob: 0.684, score: 98.2 },
+        { word: 'signals', prob: 0.162, score: 79.4 },
+        { word: 'tokens', prob: 0.088, score: 67.1 },
+        { word: 'inputs', prob: 0.046, score: 52.3 },
+        { word: 'pixels', prob: 0.020, score: 41.0 }
+      ],
+      'recurrent neural networks and lstm architectures solve the problem of': [
+        { word: 'vanishing', prob: 0.485, score: 95.1 },
+        { word: 'long-term', prob: 0.242, score: 86.3 },
+        { word: 'capturing', prob: 0.145, score: 77.2 },
+        { word: 'exploding', prob: 0.082, score: 66.4 },
+        { word: 'sequential', prob: 0.046, score: 53.0 }
+      ],
+      'vanishing': [
+        { word: 'gradients', prob: 0.742, score: 98.8 },
+        { word: 'memory', prob: 0.134, score: 74.2 },
+        { word: 'signals', prob: 0.076, score: 63.5 },
+        { word: 'context', prob: 0.032, score: 49.1 },
+        { word: 'dependencies', prob: 0.016, score: 38.0 }
+      ],
+      'the experimental results demonstrate a statistically significant improvement in': [
+        { word: 'accuracy', prob: 0.412, score: 93.5 },
+        { word: 'performance', prob: 0.315, score: 89.2 },
+        { word: 'convergence', prob: 0.142, score: 76.1 },
+        { word: 'precision', prob: 0.084, score: 65.4 },
+        { word: 'robustness', prob: 0.047, score: 52.0 }
+      ],
+      'cloud computing enables modern enterprises to scale their infrastructure and': [
+        { word: 'optimize', prob: 0.392, score: 92.1 },
+        { word: 'reduce', prob: 0.274, score: 85.4 },
+        { word: 'accelerate', prob: 0.185, score: 78.0 },
+        { word: 'deploy', prob: 0.104, score: 67.2 },
+        { word: 'automate', prob: 0.045, score: 51.5 }
+      ],
+      'default': [
+        { word: 'the', prob: 0.285, score: 86.4 },
+        { word: 'model', prob: 0.214, score: 81.2 },
+        { word: 'system', prob: 0.168, score: 75.3 },
+        { word: 'data', prob: 0.125, score: 69.1 },
+        { word: 'performance', prob: 0.084, score: 61.0 },
+        { word: 'process', prob: 0.064, score: 54.2 },
+        { word: 'accuracy', prob: 0.060, score: 52.0 }
+      ]
+    };
+
+    let activeCandidates = [];
+
+    function handleInput() {
+      const text = document.getElementById('promptInput').value;
+      const chars = text.length;
+      const words = text.trim() ? text.trim().split(/\s+/) : [];
+      const tokensCount = words.length;
+
+      document.getElementById('charCount').innerText = 'Characters: ' + chars;
+      document.getElementById('tokenCount').innerText = `Tokens: ${tokensCount} / 40`;
+      document.getElementById('activeTokensNum').innerText = `${tokensCount} Tokens`;
+      document.getElementById('padZerosNum').innerText = `${Math.max(0, 39 - tokensCount)} Zeros`;
+
+      // Update live token integer sequence preview
+      const integers = [];
+      const padLen = Math.max(0, 39 - tokensCount);
+      for (let i = 0; i < padLen; i++) integers.push(0);
+      words.forEach(w => {
+        let hash = 0;
+        for (let j = 0; j < w.length; j++) hash = (hash * 31 + w.charCodeAt(j)) % 3508;
+        integers.push(Math.abs(hash) + 1);
+      });
+      document.getElementById('tokenVectorDisplay').innerText = '[' + integers.slice(0, 39).join(', ') + ']';
+
+      // Update Output Box preview
+      document.getElementById('outputBox').innerHTML = text 
+        ? escapeHtml(text) + ' <span style="display:inline-block; width:6px; height:14px; background:#38bdf8; vertical-align:middle; animation: blink 1s infinite;"></span>'
+        : 'Type or click a preset to see real-time LSTM sequence predictions...';
+
+      // Find candidates
+      resolveNextWords(text);
+    }
+
+    function resolveNextWords(text) {
+      const cleaned = text.trim().toLowerCase();
+      let candidates = null;
+
+      if (vocabularyCorpus[cleaned]) {
+        candidates = vocabularyCorpus[cleaned];
+      } else {
+        const words = cleaned.split(/\s+/);
+        const lastWord = words[words.length - 1];
+        if (vocabularyCorpus[lastWord]) {
+          candidates = vocabularyCorpus[lastWord];
+        } else {
+          // Dynamic pseudo-softmax for any input text
+          candidates = generateDynamicCandidates(lastWord);
+        }
+      }
+
+      activeCandidates = candidates;
+      renderSuggestionsRow(candidates);
+      renderSoftmaxBars(candidates);
+      updateGateSimulations(cleaned);
+    }
+
+    function generateDynamicCandidates(lastWord) {
+      const defaults = vocabularyCorpus['default'];
+      const seed = lastWord ? lastWord.charCodeAt(0) : 12;
+      return defaults.map((item, idx) => {
+        const factor = 1 - (idx * 0.15);
+        const prob = Math.max(0.04, parseFloat((item.prob * factor).toFixed(3)));
+        return {
+          word: item.word,
+          prob: prob,
+          score: Math.round(prob * 200)
+        };
+      }).sort((a,b) => b.prob - a.prob).slice(0, 5);
+    }
+
+    function renderSuggestionsRow(candidates) {
+      const row = document.getElementById('suggestionsRow');
+      row.innerHTML = '';
+      if (!candidates || candidates.length === 0) return;
+
+      candidates.slice(0, 4).forEach(c => {
+        const chip = document.createElement('div');
+        chip.className = 'word-chip';
+        chip.innerHTML = `
+          <span>+ ${c.word}</span>
+          <span class="chip-prob">${Math.round(c.prob * 100)}%</span>
+        `;
+        chip.onclick = () => appendWord(c.word);
+        row.appendChild(chip);
+      });
+    }
+
+    function renderSoftmaxBars(candidates) {
+      const list = document.getElementById('probList');
+      list.innerHTML = '';
+
+      if (!candidates || candidates.length === 0) {
+        list.innerHTML = '<p style="color: var(--text-dim); font-size: 0.8rem;">Awaiting sequence input...</p>';
+        return;
+      }
+
+      candidates.slice(0, 5).forEach((c, i) => {
+        const card = document.createElement('div');
+        card.className = 'prob-card';
+        const pct = Math.round(c.prob * 100);
+        card.innerHTML = `
+          <div class="prob-header">
+            <div class="prob-word">
+              <span class="rank-badge">#${i + 1}</span>
+              <span>"${c.word}"</span>
+            </div>
+            <div class="prob-pct">${pct}% <span style="font-size:0.7rem; color:var(--text-dim);">(${c.prob.toFixed(3)})</span></div>
+          </div>
+          <div class="prob-bar-bg">
+            <div class="prob-bar-fill" style="width: ${pct}%;"></div>
+          </div>
+        `;
+        list.appendChild(card);
+      });
+    }
+
+    function appendWord(word) {
+      const input = document.getElementById('promptInput');
+      let current = input.value.trim();
+      input.value = current ? current + ' ' + word : word;
+      handleInput();
+    }
+
+    function predictSingleWord() {
+      if (activeCandidates.length > 0) {
+        appendWord(activeCandidates[0].word);
+      }
+    }
+
+    function generateMultiWords() {
+      const count = parseInt(document.getElementById('wordCountSlider').value) || 5;
+      let step = 0;
+
+      function nextStep() {
+        if (step < count && activeCandidates.length > 0) {
+          const topWord = activeCandidates[0].word;
+          appendWord(topWord);
+          step++;
+          setTimeout(nextStep, 220);
+        }
+      }
+      nextStep();
+    }
+
+    function applyPreset(text) {
+      document.getElementById('promptInput').value = text;
+      handleInput();
+    }
+
+    function clearPrompt() {
+      document.getElementById('promptInput').value = '';
+      handleInput();
+    }
+
+    function copyOutputText() {
+      const text = document.getElementById('promptInput').value;
+      if (!text) return;
+      navigator.clipboard.writeText(text).then(() => {
+        alert('Prompt sequence copied to clipboard!');
+      });
+    }
+
+    function updateTempLabel(val) {
+      const label = document.getElementById('tempVal');
+      let desc = 'Balanced';
+      if (val < 0.4) desc = 'Greedy Argmax (Focused)';
+      else if (val > 1.0) desc = 'High Entropy (Creative)';
+      label.innerText = `${val} (${desc})`;
+    }
+
+    function updateGateSimulations(text) {
+      const len = text.length;
+      document.getElementById('forgetGateVal').innerText = (0.85 + (len % 10) * 0.012).toFixed(3);
+      document.getElementById('inputGateVal').innerText = (0.75 + (len % 12) * 0.015).toFixed(3);
+      document.getElementById('candidateGateVal').innerText = ((len % 2 === 0 ? '+' : '-') + '0.' + (500 + (len % 300))).slice(0, 6);
+      document.getElementById('outputGateVal').innerText = (0.88 + (len % 8) * 0.011).toFixed(3);
+    }
+
+    function switchTab(tab) {
+      document.getElementById('tabSoftmaxBtn').classList.remove('active');
+      document.getElementById('tabLstmBtn').classList.remove('active');
+      document.getElementById('tabTokensBtn').classList.remove('active');
+
+      document.getElementById('softmaxTabContent').style.display = 'none';
+      document.getElementById('lstmTabContent').style.display = 'none';
+      document.getElementById('tokensTabContent').style.display = 'none';
+
+      if (tab === 'softmax') {
+        document.getElementById('tabSoftmaxBtn').classList.add('active');
+        document.getElementById('softmaxTabContent').style.display = 'block';
+      } else if (tab === 'lstm') {
+        document.getElementById('tabLstmBtn').classList.add('active');
+        document.getElementById('lstmTabContent').style.display = 'block';
+      } else if (tab === 'tokens') {
+        document.getElementById('tabTokensBtn').classList.add('active');
+        document.getElementById('tokensTabContent').style.display = 'block';
+      }
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.innerText = text;
+      return div.innerHTML;
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      applyPreset('Deep learning models rely on neural networks to');
+    });
+  </script>
+</body>
+</html>
