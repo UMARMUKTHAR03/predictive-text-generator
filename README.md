@@ -1,18 +1,18 @@
 <div align="center">
 
-# 🔤 NeuroText AI — Deep Learning LSTM Next-Word Prediction
+# 🔤 Predictive Text Generator — Deep Learning LSTM Next-Word Prediction
 
 ### Recurrent Sequence Intelligence & Neural Language Modeling
 
 **TensorFlow · Keras · Bidirectional LSTM · Streamlit · Tokenizer**
 
-[![Live Demo](https://img.shields.io/badge/🚀_Live_Demo-NeuroText_AI-6366f1?style=for-the-badge&labelColor=0f172a)](https://umarmukthar03.github.io/predictive-text-generator/)
+[![Live Demo](https://img.shields.io/badge/🚀_Live_Demo-Predictive_Text_Generator-6366f1?style=for-the-badge&labelColor=0f172a)](https://umarmukthar03.github.io/predictive-text-generator/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-8b5cf6?style=for-the-badge&labelColor=0f172a)](./LICENSE)
 [![GitHub](https://img.shields.io/badge/GitHub-UMARMUKTHAR03-f8fafc?style=for-the-badge&logo=github&labelColor=0f172a)](https://github.com/UMARMUKTHAR03)
 
 <br>
 
-<img src="./docs/preview.svg" alt="NeuroText AI Dashboard Preview" width="100%">
+<img src="./docs/preview.svg" alt="Predictive Text Generator Dashboard Preview" width="100%">
 
 <br>
 
@@ -22,7 +22,7 @@
 
 ## ⚡ Overview
 
-**NeuroText AI** is an end-to-end deep learning web application that predicts the most probable next word(s) in a sentence sequence in real-time. Built using a **Long Short-Term Memory (LSTM)** recurrent neural network architecture, it solves the fundamental vanishing gradient challenge of standard RNNs to capture long-range contextual dependencies across linguistic sequences.
+**Predictive Text Generator** is an end-to-end deep learning web application that predicts the most probable next word(s) in a sentence sequence in real-time. Built using a **Long Short-Term Memory (LSTM)** recurrent neural network architecture, it solves the fundamental vanishing gradient challenge of standard RNNs to capture long-range contextual dependencies across linguistic sequences.
 
 The model is trained on a rich corpus of over 6,500 Medium publication articles, mapping semantic relationships across a vocabulary of 3,500+ tokens to deliver accurate auto-completion and sequence generation.
 
