@@ -1070,6 +1070,9 @@
       "play": ["the", "football", "games", "music", "with"],
       "playing": ["the", "football", "games", "music", "with"],
       "sleep": ["well", "early", "now", "peacefully"],
+      "build": ["a", "the", "new", "deep", "models", "robust"],
+      "building": ["a", "the", "deep", "new", "models", "applications"],
+      "built": ["a", "the", "with", "by", "on"],
       "work": ["on", "with", "in", "hard", "for"],
       "working": ["on", "with", "in", "hard", "together"]
     };
@@ -1196,42 +1199,6 @@
         } else {
           rawCandidates = analyzeMorphology(lastWord);
         }
-      }
-      const rawText = text.trim().toLowerCase();
-      if (!rawText) {
-        activeCandidates = [];
-        renderSuggestionsRow([]);
-        renderSoftmaxBars([]);
-        return;
-      }
-
-      const words = rawText.split(/\s+/);
-      const len = words.length;
-      const lastWord = words[len - 1];
-      const twoWords = len >= 2 ? words[len - 2] + ' ' + words[len - 1] : '';
-      const threeWords = len >= 3 ? words[len - 3] + ' ' + words[len - 2] + ' ' + words[len - 1] : '';
-
-      let rawCandidates = null;
-
-      // 1. Check exact full sentence match
-      if (nlpTransitionCorpus[rawText]) {
-        rawCandidates = nlpTransitionCorpus[rawText];
-      }
-      // 2. Check trigram match
-      else if (threeWords && nlpTransitionCorpus[threeWords]) {
-        rawCandidates = nlpTransitionCorpus[threeWords];
-      }
-      // 3. Check bigram match
-      else if (twoWords && nlpTransitionCorpus[twoWords]) {
-        rawCandidates = nlpTransitionCorpus[twoWords];
-      }
-      // 4. Check unigram match
-      else if (nlpTransitionCorpus[lastWord]) {
-        rawCandidates = nlpTransitionCorpus[lastWord];
-      }
-      // 5. Intelligent Part-of-Speech & Morphological Analysis for ANY Unseen Word
-      else {
-        rawCandidates = analyzeMorphology(lastWord);
       }
 
       // Calculate True Softmax Probabilities based on Temperature Slider
