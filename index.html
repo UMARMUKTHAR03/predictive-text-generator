@@ -1108,8 +1108,95 @@
       resolveNextWords(text);
     }
 
-    // Resolves Next Candidate Words with Multi-Level Fallback & Morphological Analysis
+    // Master Vocabulary for Partial-Word Autocomplete (like a smartphone keyboard)
+    const masterVocab = [
+      "build", "building", "builder", "built", "builds",
+      "predict", "prediction", "predictive", "predictions", "predicts", "predicted", "predicting",
+      "probability", "probable", "probabilities",
+      "neural", "network", "networks", "networking",
+      "deep", "deeper", "deeply", "depth",
+      "learning", "learn", "learns", "learned", "learner",
+      "machine", "machines", "machinery",
+      "artificial", "intelligence", "algorithm", "algorithms",
+      "architecture", "architectures",
+      "recurrent", "lstm", "activation", "activations",
+      "transformer", "convolutional", "attention",
+      "tensor", "tensors", "gradient", "gradients",
+      "loss", "accuracy", "performance", "convergence",
+      "model", "models", "modeling", "modeled",
+      "data", "dataset", "datasets",
+      "feature", "features", "extract", "extraction", "extracts",
+      "optimize", "optimization", "optimizer", "optimizes",
+      "evaluate", "evaluation", "evaluates",
+      "train", "training", "trainer", "trains", "trained",
+      "token", "tokens", "tokenize", "tokenizer", "tokenization",
+      "sequence", "sequences", "sequential",
+      "sentence", "sentences",
+      "vector", "vectors", "embeddings",
+      "softmax", "entropy", "latency", "perplexity",
+      "how", "are", "you", "doing", "feeling", "today", "tomorrow", "yesterday",
+      "thank", "thanks", "helping", "everything", "welcome",
+      "where", "going", "located", "from", "living",
+      "what", "name", "opinion", "goal", "favorite", "plan",
+      "who", "when", "why", "which",
+      "good", "morning", "afternoon", "evening", "night", "sweet", "everyone",
+      "love", "like", "need", "feel", "hope", "happy", "happiness",
+      "coffee", "tea", "water", "milk", "drink", "drinking",
+      "food", "eat", "eating", "dinner", "lunch", "breakfast", "pizza",
+      "weather", "looks", "remains", "sunny", "rain", "cold", "warm",
+      "cat", "cats", "dog", "dogs", "chair", "table", "couch", "floor", "bed",
+      "football", "field", "stadium", "sports", "game", "games",
+      "store", "market", "office", "station", "beach", "park", "gym",
+      "friend", "friends", "family", "people", "person",
+      "quick", "brown", "fox", "jumps", "over",
+      "start", "starting", "started", "finish", "finished",
+      "great", "wonderful", "beautiful", "new", "busy",
+      "help", "hello", "helpful", "please", "provide", "explain",
+      "computer", "computing", "cloud", "software", "system", "systems"
+    ];
+
+    // Resolves Next Candidate Words with Smartphone-Style Prefix Completion + Sequence Prediction
     function resolveNextWords(text) {
+      const endsWithSpace = text.endsWith(' ') || text.endsWith('\t') || text.endsWith('\n');
+      const rawText = text.trim().toLowerCase();
+      if (!rawText) {
+        activeCandidates = [];
+        renderSuggestionsRow([]);
+        renderSoftmaxBars([]);
+        return;
+      }
+
+      const words = rawText.split(/\s+/);
+      const len = words.length;
+      const lastWord = words[len - 1];
+      const twoWords = len >= 2 ? words[len - 2] + ' ' + words[len - 1] : '';
+      const threeWords = len >= 3 ? words[len - 3] + ' ' + words[len - 2] + ' ' + words[len - 1] : '';
+
+      let rawCandidates = null;
+
+      // 1. Partial-Word Autocomplete (e.g. typing 'bui' shows 'build', 'building', 'builder', 'built')
+      if (!endsWithSpace && lastWord.length >= 1) {
+        const prefixMatches = masterVocab.filter(w => w.startsWith(lastWord) && w !== lastWord);
+        if (prefixMatches.length > 0) {
+          prefixMatches.sort((a, b) => a.length - b.length);
+          rawCandidates = prefixMatches.slice(0, 5);
+        }
+      }
+
+      // 2. Next-Word Prediction (when completing words or following trailing space)
+      if (!rawCandidates) {
+        if (nlpTransitionCorpus[rawText]) {
+          rawCandidates = nlpTransitionCorpus[rawText];
+        } else if (threeWords && nlpTransitionCorpus[threeWords]) {
+          rawCandidates = nlpTransitionCorpus[threeWords];
+        } else if (twoWords && nlpTransitionCorpus[twoWords]) {
+          rawCandidates = nlpTransitionCorpus[twoWords];
+        } else if (nlpTransitionCorpus[lastWord]) {
+          rawCandidates = nlpTransitionCorpus[lastWord];
+        } else {
+          rawCandidates = analyzeMorphology(lastWord);
+        }
+      }
       const rawText = text.trim().toLowerCase();
       if (!rawText) {
         activeCandidates = [];
@@ -1262,11 +1349,22 @@
       });
     }
 
-    // Appends Word and Automatically Updates Sequential Context
+    // Appends Word: Handles In-Flight Prefix Completion and Sequential Next Words
     function appendWord(word) {
       const input = document.getElementById('promptInput');
-      let current = input.value.trim();
-      input.value = current ? current + ' ' + word : word;
+      const val = input.value;
+      const endsWithSpace = val.endsWith(' ') || val.endsWith('\t') || val.endsWith('\n');
+
+      if (!endsWithSpace && val.trim().length > 0) {
+        // Replace active partial prefix with the chosen completed word
+        const words = val.trim().split(/\s+/);
+        words[words.length - 1] = word;
+        input.value = words.join(' ') + ' ';
+      } else {
+        // Append next predicted word
+        let current = val.trim();
+        input.value = current ? current + ' ' + word + ' ' : word + ' ';
+      }
       handleInput();
     }
 
