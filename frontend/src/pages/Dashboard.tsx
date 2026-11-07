@@ -6,23 +6,25 @@ import {
   Activity, 
   Zap, 
   ArrowRight, 
-  Layers,
-  Clock
+  Globe2,
+  TerminalSquare
 } from 'lucide-react';
-import { ModelInfo, HealthStatus } from '../types/api';
+import { ModelInfo, WritingMode } from '../types/api';
 
 interface DashboardProps {
   setActiveTab: (tab: string) => void;
   modelInfo: ModelInfo | null;
-  health: HealthStatus | null;
+  activeMode: WritingMode;
+  setActiveMode: (mode: WritingMode) => void;
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({ 
   setActiveTab, 
-  modelInfo 
+  modelInfo,
+  activeMode,
+  setActiveMode 
 }) => {
-  const metrics = modelInfo?.metrics;
-  const fwdLatency = metrics?.latencies?.model_forward_pass_ms?.median ?? 2.35;
+  const techMetrics = modelInfo?.modes?.technical?.metrics;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
@@ -33,140 +35,99 @@ export const Dashboard: React.FC<DashboardProps> = ({
         <div className="relative z-10 max-w-3xl">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-mono mb-4">
             <Zap className="w-3.5 h-3.5" />
-            PyTorch BiLSTM Language Model • 7,299 Vocab
+            NeuroText AI V2 • Dual Engine (DistilGPT-2 + BiLSTM)
           </div>
 
           <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight leading-tight">
-            NeuroText AI: Intelligent Predictive Writing & Language Platform
+            Intelligent Predictive Writing & Language Platform
           </h1>
 
           <p className="mt-4 text-base text-slate-300 leading-relaxed">
-            High-performance next-token forecasting and sequential headline generation powered by a Bidirectional Long Short-Term Memory (BiLSTM) network trained on authentic data science and technology publications.
+            Full-stack neural writing assistance platform supporting both open-domain <strong>General English</strong> (via DistilGPT-2 autoregressive transformer) and specialized <strong>Technical Writing</strong> (via Bidirectional LSTM).
           </p>
 
-          <div className="mt-6 flex flex-wrap gap-4">
+          <div className="mt-6 flex flex-wrap gap-4 items-center">
             <button
-              onClick={() => setActiveTab('studio')}
+              onClick={() => { setActiveMode('general'); setActiveTab('studio'); }}
               className="flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-medium shadow-lg shadow-emerald-500/20 transition-all hover:scale-105"
             >
-              <Sparkles className="w-4 h-4" />
-              Open Writing Studio
+              <Globe2 className="w-4 h-4" />
+              General Writing Studio
               <ArrowRight className="w-4 h-4" />
             </button>
 
             <button
-              onClick={() => setActiveTab('intelligence')}
+              onClick={() => { setActiveMode('technical'); setActiveTab('studio'); }}
               className="flex items-center gap-2 px-6 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium border border-slate-700 transition"
             >
-              <Cpu className="w-4 h-4 text-emerald-400" />
-              Inspect Architecture
+              <TerminalSquare className="w-4 h-4 text-emerald-400" />
+              Technical Writing Studio
             </button>
           </div>
         </div>
       </div>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg">
-          <div className="flex items-center justify-between text-slate-400 mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider">Top-1 Accuracy</span>
-            <BarChart3 className="w-4 h-4 text-emerald-400" />
+      {/* Dual Mode Overview Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* General Model Card */}
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl relative overflow-hidden">
+          <div className="flex items-center justify-between mb-4">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-mono">
+              <Globe2 className="w-3.5 h-3.5" /> General English Engine
+            </span>
+            <span className="text-xs text-slate-400 font-mono">81.9M Parameters</span>
           </div>
-          <div className="text-2xl font-bold text-white font-mono">
-            {metrics ? `${(metrics.top1_accuracy * 100).toFixed(2)}%` : '15.18%'}
-          </div>
-          <div className="text-xs text-slate-400 mt-2 flex items-center gap-1">
-            <span className="text-emerald-400 font-medium">+11.6%</span> vs unigram baseline (3.56%)
-          </div>
-        </div>
-
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg">
-          <div className="flex items-center justify-between text-slate-400 mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider">Top-5 Accuracy</span>
-            <Layers className="w-4 h-4 text-teal-400" />
-          </div>
-          <div className="text-2xl font-bold text-white font-mono">
-            {metrics ? `${(metrics.top5_accuracy * 100).toFixed(2)}%` : '27.44%'}
-          </div>
-          <div className="text-xs text-slate-400 mt-2">
-            Evaluated on 4,862 holdout sequences
-          </div>
-        </div>
-
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg">
-          <div className="flex items-center justify-between text-slate-400 mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider">Holdout Perplexity</span>
-            <Activity className="w-4 h-4 text-amber-400" />
-          </div>
-          <div className="text-2xl font-bold text-white font-mono">
-            {metrics ? metrics.test_perplexity.toFixed(1) : '587.8'}
-          </div>
-          <div className="text-xs text-slate-400 mt-2">
-            Test Cross-Entropy Loss: 6.38
-          </div>
-        </div>
-
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg">
-          <div className="flex items-center justify-between text-slate-400 mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider">Forward Latency</span>
-            <Clock className="w-4 h-4 text-sky-400" />
-          </div>
-          <div className="text-2xl font-bold text-white font-mono">
-            {fwdLatency.toFixed(2)} ms
-          </div>
-          <div className="text-xs text-slate-400 mt-2">
-            CPU tensor forward pass (median)
-          </div>
-        </div>
-      </div>
-
-      {/* Feature Modules Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-lg hover:border-slate-700 transition">
-          <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mb-4">
-            <Sparkles className="w-5 h-5" />
-          </div>
-          <h3 className="text-lg font-bold text-white mb-2">Predictive Writing Studio</h3>
-          <p className="text-sm text-slate-400 leading-relaxed mb-4">
-            Interactive text canvas with debounced real-time forecast requests, Tab completion, Top-K candidates, and multi-word continuation.
+          <h3 className="text-lg font-bold text-white mb-2">DistilGPT-2 Autoregressive Transformer</h3>
+          <p className="text-xs text-slate-400 leading-relaxed mb-4">
+            Pretrained causal language model for open-domain English: professional emails, conversational sentences, articles, stories, and question-answering.
           </p>
+          <div className="grid grid-cols-2 gap-3 text-xs mb-4">
+            <div className="p-3 rounded-lg bg-slate-950/60 border border-slate-800">
+              <span className="text-slate-500 block">Context Length</span>
+              <span className="text-slate-200 font-mono font-semibold">1,024 tokens</span>
+            </div>
+            <div className="p-3 rounded-lg bg-slate-950/60 border border-slate-800">
+              <span className="text-slate-500 block">Vocabulary</span>
+              <span className="text-slate-200 font-mono font-semibold">50,257 BPE</span>
+            </div>
+          </div>
           <button
-            onClick={() => setActiveTab('studio')}
-            className="text-xs font-semibold text-emerald-400 hover:text-emerald-300 flex items-center gap-1"
+            onClick={() => { setActiveMode('general'); setActiveTab('studio'); }}
+            className="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-emerald-500/10 hover:border-emerald-500/30 text-emerald-400 font-semibold text-xs border border-slate-700 transition"
           >
-            Launch Studio <ArrowRight className="w-3.5 h-3.5" />
+            Launch General Studio →
           </button>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-lg hover:border-slate-700 transition">
-          <div className="w-10 h-10 rounded-xl bg-teal-500/10 border border-teal-500/20 flex items-center justify-center text-teal-400 mb-4">
-            <Cpu className="w-5 h-5" />
+        {/* Technical Model Card */}
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl relative overflow-hidden">
+          <div className="flex items-center justify-between mb-4">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-teal-500/10 border border-teal-500/20 text-teal-400 text-xs font-mono">
+              <TerminalSquare className="w-3.5 h-3.5" /> Technical Writing Engine
+            </span>
+            <span className="text-xs text-slate-400 font-mono">3.2M Parameters</span>
           </div>
-          <h3 className="text-lg font-bold text-white mb-2">Model Intelligence</h3>
-          <p className="text-sm text-slate-400 leading-relaxed mb-4">
-            Full architecture breakdown: Embedding (100d), Bidirectional LSTM (150 units), Linear projection, parameter counts, and leak-free split methodology.
+          <h3 className="text-lg font-bold text-white mb-2">PyTorch Bidirectional LSTM</h3>
+          <p className="text-xs text-slate-400 leading-relaxed mb-4">
+            Custom-trained recurrent architecture specialized in data science, artificial intelligence, machine learning, and tech publication headlines.
           </p>
-          <button
-            onClick={() => setActiveTab('intelligence')}
-            className="text-xs font-semibold text-teal-400 hover:text-teal-300 flex items-center gap-1"
-          >
-            Explore Architecture <ArrowRight className="w-3.5 h-3.5" />
-          </button>
-        </div>
-
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-lg hover:border-slate-700 transition">
-          <div className="w-10 h-10 rounded-xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400 mb-4">
-            <Activity className="w-5 h-5" />
+          <div className="grid grid-cols-2 gap-3 text-xs mb-4">
+            <div className="p-3 rounded-lg bg-slate-950/60 border border-slate-800">
+              <span className="text-slate-500 block">Top-1 / Top-5 Accuracy</span>
+              <span className="text-emerald-400 font-mono font-semibold">
+                {techMetrics ? `${(techMetrics.top1_accuracy * 100).toFixed(1)}% / ${(techMetrics.top5_accuracy * 100).toFixed(1)}%` : '15.2% / 27.4%'}
+              </span>
+            </div>
+            <div className="p-3 rounded-lg bg-slate-950/60 border border-slate-800">
+              <span className="text-slate-500 block">Vocabulary</span>
+              <span className="text-slate-200 font-mono font-semibold">7,299 tokens</span>
+            </div>
           </div>
-          <h3 className="text-lg font-bold text-white mb-2">Operational Analytics</h3>
-          <p className="text-sm text-slate-400 leading-relaxed mb-4">
-            Live request counters, separate forward vs full service latency tracking, API uptime, and baseline model comparison against unigram frequency.
-          </p>
           <button
-            onClick={() => setActiveTab('analytics')}
-            className="text-xs font-semibold text-sky-400 hover:text-sky-300 flex items-center gap-1"
+            onClick={() => { setActiveMode('technical'); setActiveTab('studio'); }}
+            className="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-teal-500/10 hover:border-teal-500/30 text-teal-400 font-semibold text-xs border border-slate-700 transition"
           >
-            View Analytics <ArrowRight className="w-3.5 h-3.5" />
+            Launch Technical Studio →
           </button>
         </div>
       </div>

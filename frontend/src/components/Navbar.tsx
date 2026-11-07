@@ -5,24 +5,26 @@ import {
   BarChart3, 
   Settings, 
   Activity, 
-  Zap, 
-  CheckCircle2, 
-  AlertCircle 
+  Zap,
+  Globe2,
+  TerminalSquare
 } from 'lucide-react';
-import { HealthStatus } from '../types/api';
+import { HealthStatus, WritingMode } from '../types/api';
 
 interface NavbarProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
   health: HealthStatus | null;
-  backendUrl: string;
+  activeMode: WritingMode;
+  setActiveMode: (mode: WritingMode) => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({ 
   activeTab, 
   setActiveTab, 
-  health, 
-  backendUrl 
+  health,
+  activeMode,
+  setActiveMode
 }) => {
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
@@ -42,10 +44,36 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
             <div>
               <span className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
-                NeuroText <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono">AI 2.0</span>
+                NeuroText <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono">AI V2</span>
               </span>
               <p className="text-xs text-slate-400 hidden sm:block">Intelligent Predictive Writing Platform</p>
             </div>
+          </div>
+
+          {/* Dual Mode Quick Switcher in Navbar */}
+          <div className="hidden lg:flex items-center p-1 rounded-xl bg-slate-950 border border-slate-800">
+            <button
+              onClick={() => setActiveMode('general')}
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium transition ${
+                activeMode === 'general'
+                  ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <Globe2 className="w-3.5 h-3.5" />
+              General English (DistilGPT-2)
+            </button>
+            <button
+              onClick={() => setActiveMode('technical')}
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium transition ${
+                activeMode === 'technical'
+                  ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <TerminalSquare className="w-3.5 h-3.5" />
+              Technical Writing (BiLSTM)
+            </button>
           </div>
 
           <nav className="hidden md:flex items-center gap-1">
@@ -82,7 +110,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 )}
               </span>
               <span className="text-slate-300 font-mono hidden sm:inline">
-                {health?.status === 'healthy' ? 'PyTorch BiLSTM Online' : 'Connecting to API...'}
+                {health?.status === 'healthy' ? 'Engine Online' : 'Connecting...'}
               </span>
             </div>
           </div>

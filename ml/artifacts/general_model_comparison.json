@@ -1,0 +1,292 @@
+{
+  "distilgpt2": {
+    "name": "distilgpt2",
+    "model_id": "distilbert/distilgpt2",
+    "parameters": 81912576,
+    "load_time_sec": 14.74,
+    "model_ram_mb": 42.3,
+    "avg_next_token_latency_ms": 45.64,
+    "results": [
+      {
+        "prompt": "The weather is very",
+        "top_candidates": [
+          {
+            "token": " good",
+            "prob": 0.1215
+          },
+          {
+            "token": " cold",
+            "prob": 0.0756
+          },
+          {
+            "token": " warm",
+            "prob": 0.0461
+          },
+          {
+            "token": " different",
+            "prob": 0.0362
+          },
+          {
+            "token": " bad",
+            "prob": 0.0359
+          }
+        ],
+        "greedy_continuation": "The weather is very good, and the weather is very good.\u201d\n\n\n\n",
+        "sampled_continuation": "The weather is very good, I can't wait to see the new weather, I'll be"
+      },
+      {
+        "prompt": "I am writing this email to",
+        "top_candidates": [
+          {
+            "token": " the",
+            "prob": 0.065
+          },
+          {
+            "token": " ask",
+            "prob": 0.0482
+          },
+          {
+            "token": " say",
+            "prob": 0.0379
+          },
+          {
+            "token": " tell",
+            "prob": 0.0312
+          },
+          {
+            "token": " my",
+            "prob": 0.0217
+          }
+        ],
+        "greedy_continuation": "I am writing this email to the editor of the New York Times. I am not a fan of the",
+        "sampled_continuation": "I am writing this email to ask for help.\n\n\n\nI am going to be writing this"
+      },
+      {
+        "prompt": "The future of artificial intelligence",
+        "top_candidates": [
+          {
+            "token": " is",
+            "prob": 0.2253
+          },
+          {
+            "token": " will",
+            "prob": 0.1128
+          },
+          {
+            "token": ",",
+            "prob": 0.0923
+          },
+          {
+            "token": ".",
+            "prob": 0.0718
+          },
+          {
+            "token": " and",
+            "prob": 0.0644
+          }
+        ],
+        "greedy_continuation": "The future of artificial intelligence is not yet clear.\n\n\n\n\n\n\n\n\n\n",
+        "sampled_continuation": "The future of artificial intelligence, and we know that it\u202ds a long shot.\n\n"
+      },
+      {
+        "prompt": "In order to succeed in life you need to",
+        "top_candidates": [
+          {
+            "token": " be",
+            "prob": 0.1155
+          },
+          {
+            "token": " have",
+            "prob": 0.0916
+          },
+          {
+            "token": " know",
+            "prob": 0.0347
+          },
+          {
+            "token": " take",
+            "prob": 0.0229
+          },
+          {
+            "token": " make",
+            "prob": 0.0199
+          }
+        ],
+        "greedy_continuation": "In order to succeed in life you need to be able to do it.\n\n\n\n\n\n\n\n\n",
+        "sampled_continuation": "In order to succeed in life you need to look at your life. You must look at what is happening in your life"
+      },
+      {
+        "prompt": "She opened the mysterious door and found",
+        "top_candidates": [
+          {
+            "token": " a",
+            "prob": 0.2317
+          },
+          {
+            "token": " the",
+            "prob": 0.1575
+          },
+          {
+            "token": " her",
+            "prob": 0.0684
+          },
+          {
+            "token": " it",
+            "prob": 0.0391
+          },
+          {
+            "token": " himself",
+            "prob": 0.0307
+          }
+        ],
+        "greedy_continuation": "She opened the mysterious door and found a man in the back of the room. He was wearing a black suit",
+        "sampled_continuation": "She opened the mysterious door and found the door. She turned around to see him.\n\n\n\"I"
+      }
+    ]
+  },
+  "pythia-70m": {
+    "name": "pythia-70m",
+    "model_id": "EleutherAI/pythia-70m",
+    "parameters": 70426624,
+    "load_time_sec": 9.13,
+    "model_ram_mb": 277.8,
+    "avg_next_token_latency_ms": 47.38,
+    "results": [
+      {
+        "prompt": "The weather is very",
+        "top_candidates": [
+          {
+            "token": " good",
+            "prob": 0.1709
+          },
+          {
+            "token": " different",
+            "prob": 0.0629
+          },
+          {
+            "token": " bad",
+            "prob": 0.0341
+          },
+          {
+            "token": " cold",
+            "prob": 0.0316
+          },
+          {
+            "token": " similar",
+            "prob": 0.0254
+          }
+        ],
+        "greedy_continuation": "The weather is very good, but the weather is not good.\n\nThe weather is good",
+        "sampled_continuation": "The weather is very good for this country but the quality\n\nI think we need to start"
+      },
+      {
+        "prompt": "I am writing this email to",
+        "top_candidates": [
+          {
+            "token": " you",
+            "prob": 0.2218
+          },
+          {
+            "token": " be",
+            "prob": 0.0602
+          },
+          {
+            "token": " the",
+            "prob": 0.0523
+          },
+          {
+            "token": " me",
+            "prob": 0.0425
+          },
+          {
+            "token": " someone",
+            "prob": 0.0226
+          }
+        ],
+        "greedy_continuation": "I am writing this email to you.\n\nI am writing this email to you.\n\nI",
+        "sampled_continuation": "I am writing this email to you as long as I see you as I am getting the correct answer."
+      },
+      {
+        "prompt": "The future of artificial intelligence",
+        "top_candidates": [
+          {
+            "token": " is",
+            "prob": 0.2101
+          },
+          {
+            "token": ",",
+            "prob": 0.0957
+          },
+          {
+            "token": " and",
+            "prob": 0.0778
+          },
+          {
+            "token": " (",
+            "prob": 0.0622
+          },
+          {
+            "token": " will",
+            "prob": 0.057
+          }
+        ],
+        "greedy_continuation": "The future of artificial intelligence is to be seen as a new way of thinking.\n\nThe future",
+        "sampled_continuation": "The future of artificial intelligence in the field of artificial intelligence is to be seen as one of the main"
+      },
+      {
+        "prompt": "In order to succeed in life you need to",
+        "top_candidates": [
+          {
+            "token": " be",
+            "prob": 0.1565
+          },
+          {
+            "token": " make",
+            "prob": 0.0414
+          },
+          {
+            "token": " have",
+            "prob": 0.0331
+          },
+          {
+            "token": " do",
+            "prob": 0.0255
+          },
+          {
+            "token": " know",
+            "prob": 0.0233
+          }
+        ],
+        "greedy_continuation": "In order to succeed in life you need to be able to work in a new environment.\n\nThe first thing you",
+        "sampled_continuation": "In order to succeed in life you need to be able to make the best decision, it\u2019s time to give a"
+      },
+      {
+        "prompt": "She opened the mysterious door and found",
+        "top_candidates": [
+          {
+            "token": " the",
+            "prob": 0.1737
+          },
+          {
+            "token": " her",
+            "prob": 0.1206
+          },
+          {
+            "token": " it",
+            "prob": 0.1175
+          },
+          {
+            "token": " herself",
+            "prob": 0.1011
+          },
+          {
+            "token": " that",
+            "prob": 0.06
+          }
+        ],
+        "greedy_continuation": "She opened the mysterious door and found the woman's body.\n\n\"I'm sorry, but I'm",
+        "sampled_continuation": "She opened the mysterious door and found it open. The girl was in the back seat of the car and was"
+      }
+    ]
+  }
+}

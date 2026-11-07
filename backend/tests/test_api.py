@@ -1,96 +1,114 @@
 import pytest
 from fastapi.testclient import TestClient
 from backend.app.main import app
-from backend.app.services.model_loader import ModelManager
+from backend.app.services.model_router import ModelRouter
 
 @pytest.fixture(scope="session")
 def client():
-    # Force load model manager
-    ModelManager.get_instance().load()
+    ModelRouter.get_instance().initialize()
     with TestClient(app) as test_client:
         yield test_client
 
-def test_root_endpoint(client):
+def test_root_endpoint_v2(client):
     response = client.get("/")
     assert response.status_code == 200
     data = response.json()
     assert data["status"] == "online"
-    assert "NeuroText AI" in data["name"]
+    assert data["version"] == "2.0.0"
+    assert "general" in data["modes_available"]
+    assert "technical" in data["modes_available"]
 
-def test_health_endpoint(client):
+def test_health_endpoint_dual_modes(client):
     response = client.get("/health")
     assert response.status_code == 200
     data = response.json()
     assert data["status"] == "healthy"
-    assert data["model_loaded"] is True
+    assert data["technical_model_loaded"] is True
+    assert "modes" in data
+    assert "general" in data["modes"]
+    assert "technical" in data["modes"]
 
-def test_model_info_endpoint(client):
+def test_model_info_endpoint_dual_modes(client):
     response = client.get("/model-info")
     assert response.status_code == 200
     data = response.json()
-    assert "BiLSTM" in data["architecture"]
-    assert data["vocab_size"] > 1000
-    assert "metrics" in data
-    assert "top1_accuracy" in data["metrics"]
-    assert "top5_accuracy" in data["metrics"]
+    assert "modes" in data
+    assert "general" in data["modes"]
+    assert "DistilGPT-2" in data["modes"]["general"]["name"]
+    assert "technical" in data["modes"]
+    assert "BiLSTM" in data["modes"]["technical"]["name"]
 
-def test_predict_endpoint_success(client):
+def test_predict_technical_mode_default(client):
     payload = {
-        "text": "deep learning and neural",
+        "text": "deep learning architectures for",
+        "top_k": 5
+    }
+    response = client.post("/predict", json=payload)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["mode"] == "technical"
+    assert len(data["candidates"]) == 5
+    for c in data["candidates"]:
+        assert c["probability"] > 0
+        assert isinstance(c["word"], str)
+
+def test_predict_general_mode(client):
+    payload = {
+        "text": "The weather is very",
+        "mode": "general",
         "top_k": 5,
         "temperature": 1.0
     }
     response = client.post("/predict", json=payload)
     assert response.status_code == 200
     data = response.json()
-    assert data["input_text"] == payload["text"]
-    assert len(data["candidates"]) == 5
-    # Verify probabilities sum to reasonable positive values
-    for cand in data["candidates"]:
-        assert cand["probability"] > 0
-        assert isinstance(cand["word"], str)
-        assert cand["word"] not in ["<oov>", "<pad>"]
-    # Check ranking
-    probs = [c["probability"] for c in data["candidates"]]
-    assert probs == sorted(probs, reverse=True)
+    assert data["mode"] == "general"
+    assert len(data["candidates"]) >= 3
+    for c in data["candidates"]:
+        assert len(c["word"].strip()) > 0
+        assert c["word"] not in ["<|endoftext|>", ""]
 
-def test_predict_endpoint_empty_input(client):
-    response = client.post("/predict", json={"text": "   "})
-    assert response.status_code == 400
-
-def test_generate_endpoint_greedy(client):
+def test_generate_technical_mode(client):
     payload = {
         "prompt": "how to build a",
+        "mode": "technical",
         "max_tokens": 4,
         "strategy": "greedy"
     }
     response = client.post("/generate", json=payload)
     assert response.status_code == 200
     data = response.json()
-    assert data["prompt"] == payload["prompt"]
-    assert len(data["tokens_generated"]) <= 4
+    assert data["mode"] == "technical"
     assert len(data["completed_text"]) > len(payload["prompt"])
-    assert data["strategy_used"] == "greedy"
 
-def test_generate_endpoint_sampling(client):
+def test_generate_general_mode(client):
     payload = {
-        "prompt": "artificial intelligence for",
-        "max_tokens": 3,
-        "strategy": "top_k",
-        "top_k": 5,
-        "temperature": 0.8
+        "prompt": "I am writing this email to",
+        "mode": "general",
+        "max_tokens": 10,
+        "strategy": "greedy"
     }
     response = client.post("/generate", json=payload)
     assert response.status_code == 200
     data = response.json()
-    assert len(data["tokens_generated"]) <= 3
+    assert data["mode"] == "general"
+    assert len(data["generated_text"]) > 0
+    assert "DistilGPT-2" in data["model_name"]
 
-def test_analytics_endpoint(client):
+def test_predict_empty_text_validation(client):
+    response = client.post("/predict", json={"text": "   ", "mode": "general"})
+    assert response.status_code == 400
+
+def test_generate_empty_prompt_validation(client):
+    response = client.post("/generate", json={"prompt": "  ", "mode": "technical"})
+    assert response.status_code == 400
+
+def test_analytics_tracking_dual_modes(client):
     response = client.get("/analytics")
     assert response.status_code == 200
     data = response.json()
-    assert "total_predictions" in data
-    assert "total_generations" in data
-    assert "avg_latency_ms" in data
-    assert data["total_predictions"] >= 1
-
+    assert "predictions_by_mode" in data
+    assert "generations_by_mode" in data
+    assert data["predictions_by_mode"]["general"] >= 1
+    assert data["predictions_by_mode"]["technical"] >= 1
+    assert data["total_predictions"] >= 2

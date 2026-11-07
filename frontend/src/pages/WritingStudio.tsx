@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Sparkles, 
   Send, 
@@ -9,18 +9,25 @@ import {
   Zap, 
   Clock, 
   BrainCircuit, 
-  Layers,
-  ChevronRight,
-  Info
+  Info,
+  Globe2,
+  TerminalSquare
 } from 'lucide-react';
 import { ApiClient } from '../services/api';
-import { PredictResponse, GenerateResponse, PredictionCandidate } from '../types/api';
+import { PredictResponse, GenerateResponse, WritingMode } from '../types/api';
 
-export const WritingStudio: React.FC = () => {
-  const [inputText, setInputText] = useState('Deep learning architectures for');
+interface WritingStudioProps {
+  activeMode: WritingMode;
+  setActiveMode: (mode: WritingMode) => void;
+}
+
+export const WritingStudio: React.FC<WritingStudioProps> = ({ activeMode, setActiveMode }) => {
+  const [inputText, setInputText] = useState(
+    activeMode === 'general' ? 'The future of artificial intelligence' : 'Deep learning architectures for'
+  );
   const [topK, setTopK] = useState(5);
   const [temperature, setTemperature] = useState(0.8);
-  const [maxTokens, setMaxTokens] = useState(6);
+  const [maxTokens, setMaxTokens] = useState(12);
   const [strategy, setStrategy] = useState<'greedy' | 'top_k' | 'sampling'>('greedy');
   
   const [prediction, setPrediction] = useState<PredictResponse | null>(null);
@@ -29,6 +36,18 @@ export const WritingStudio: React.FC = () => {
   const [isLoadingGen, setIsLoadingGen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+
+  // When mode changes, optionally update sample prompt if canvas matches old default
+  const handleModeChange = (mode: WritingMode) => {
+    setActiveMode(mode);
+    setPrediction(null);
+    setGeneration(null);
+    if (mode === 'general' && inputText === 'Deep learning architectures for') {
+      setInputText('The future of artificial intelligence');
+    } else if (mode === 'technical' && inputText === 'The future of artificial intelligence') {
+      setInputText('Deep learning architectures for');
+    }
+  };
 
   // Debounced next-token prediction
   useEffect(() => {
@@ -41,7 +60,7 @@ export const WritingStudio: React.FC = () => {
       setIsLoadingPred(true);
       setError(null);
       try {
-        const res = await ApiClient.predict(inputText, topK, temperature);
+        const res = await ApiClient.predict(inputText, activeMode, topK, temperature);
         setPrediction(res);
       } catch (err: any) {
         setError(err.message || 'Failed to fetch predictions');
@@ -51,7 +70,7 @@ export const WritingStudio: React.FC = () => {
     }, 280);
 
     return () => clearTimeout(timer);
-  }, [inputText, topK, temperature]);
+  }, [inputText, activeMode, topK, temperature]);
 
   const handleSelectCandidate = (word: string) => {
     setInputText((prev) => `${prev.trim()} ${word}`);
@@ -62,7 +81,7 @@ export const WritingStudio: React.FC = () => {
     setIsLoadingGen(true);
     setError(null);
     try {
-      const res = await ApiClient.generate(inputText, maxTokens, temperature, strategy, topK);
+      const res = await ApiClient.generate(inputText, activeMode, maxTokens, temperature, strategy, topK);
       setGeneration(res);
     } catch (err: any) {
       setError(err.message || 'Generation failed');
@@ -87,6 +106,7 @@ export const WritingStudio: React.FC = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Header and Mode Selector */}
       <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-white flex items-center gap-2">
@@ -94,24 +114,33 @@ export const WritingStudio: React.FC = () => {
             Predictive Writing Studio
           </h1>
           <p className="text-sm text-slate-400 mt-1">
-            Real-time next-token forecasting and sequential headline completion powered by trained PyTorch BiLSTM.
+            Real-time next-token forecasting & sequential generation with dedicated General English & Technical models.
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        {/* Model Mode Switcher Banner */}
+        <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-slate-900 border border-slate-800 shadow-lg">
           <button
-            onClick={handleCopy}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-300 border border-slate-700 transition"
+            onClick={() => handleModeChange('general')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition ${
+              activeMode === 'general'
+                ? 'bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800'
+            }`}
           >
-            {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5 text-slate-400" />}
-            {copied ? 'Copied' : 'Copy Text'}
+            <Globe2 className="w-4 h-4" />
+            General English (DistilGPT-2)
           </button>
           <button
-            onClick={() => { setInputText(''); setPrediction(null); setGeneration(null); }}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-300 border border-slate-700 transition"
+            onClick={() => handleModeChange('technical')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition ${
+              activeMode === 'technical'
+                ? 'bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800'
+            }`}
           >
-            <RotateCcw className="w-3.5 h-3.5 text-slate-400" />
-            Clear
+            <TerminalSquare className="w-4 h-4" />
+            Technical Writing (BiLSTM)
           </button>
         </div>
       </div>
@@ -119,7 +148,7 @@ export const WritingStudio: React.FC = () => {
       {error && (
         <div className="mb-6 p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-sm flex items-center gap-3">
           <Info className="w-5 h-5 shrink-0" />
-          <span>{error}. Check that the FastAPI server is running at {ApiClient.getBaseUrl()}.</span>
+          <span>{error}. Check API connection at {ApiClient.getBaseUrl()}.</span>
         </div>
       )}
 
@@ -128,8 +157,28 @@ export const WritingStudio: React.FC = () => {
         <div className="lg:col-span-2 space-y-6">
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl relative">
             <div className="flex items-center justify-between mb-3 text-xs text-slate-400">
-              <span className="font-semibold uppercase tracking-wider text-slate-300">Writing Canvas</span>
-              <span className="font-mono">{inputText.trim() ? inputText.trim().split(/\s+/).length : 0} words</span>
+              <span className="font-semibold uppercase tracking-wider text-slate-300 flex items-center gap-2">
+                Writing Canvas
+                <span className="px-2 py-0.5 rounded-full bg-slate-800 text-emerald-400 border border-slate-700 text-[10px] font-mono">
+                  {activeMode === 'general' ? 'DistilGPT-2 82M' : 'BiLSTM 3.2M'}
+                </span>
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleCopy}
+                  className="flex items-center gap-1 px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] transition"
+                >
+                  {copied ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                  {copied ? 'Copied' : 'Copy'}
+                </button>
+                <button
+                  onClick={() => { setInputText(''); setPrediction(null); setGeneration(null); }}
+                  className="flex items-center gap-1 px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] transition"
+                >
+                  <RotateCcw className="w-3 h-3" />
+                  Clear
+                </button>
+              </div>
             </div>
 
             <div className="relative">
@@ -138,7 +187,11 @@ export const WritingStudio: React.FC = () => {
                 onChange={(e) => setInputText(e.target.value)}
                 onKeyDown={handleKeyDown}
                 rows={5}
-                placeholder="Type tech headlines, e.g., 'How to build neural network in'..."
+                placeholder={
+                  activeMode === 'general'
+                    ? "Type general sentences, e.g. 'I am writing this email to', 'The weather is very'..."
+                    : "Type tech headlines, e.g. 'Deep learning architectures for', 'How to train neural network'..."
+                }
                 className="w-full bg-slate-950/70 border border-slate-700/80 rounded-xl p-4 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 text-base leading-relaxed font-sans resize-none transition"
               />
 
@@ -155,11 +208,11 @@ export const WritingStudio: React.FC = () => {
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
                   <BrainCircuit className="w-3.5 h-3.5 text-emerald-400" />
-                  Top Next-Token Candidates
+                  Next-Word Suggestions ({activeMode})
                 </span>
                 {prediction && (
                   <span className="text-xs font-mono text-slate-500 flex items-center gap-1">
-                    <Clock className="w-3 h-3" /> {prediction.latency_ms} ms
+                    <Clock className="w-3 h-3" /> {prediction.latency_ms} ms ({prediction.model_name})
                   </span>
                 )}
               </div>
@@ -168,7 +221,7 @@ export const WritingStudio: React.FC = () => {
                 {isLoadingPred ? (
                   <div className="text-xs text-slate-500 animate-pulse flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-                    Inferring PyTorch BiLSTM probabilities...
+                    Extracting next-word candidates from {activeMode === 'general' ? 'DistilGPT-2' : 'PyTorch BiLSTM'}...
                   </div>
                 ) : prediction && prediction.candidates.length > 0 ? (
                   prediction.candidates.map((cand) => (
@@ -184,7 +237,7 @@ export const WritingStudio: React.FC = () => {
                     </button>
                   ))
                 ) : (
-                  <span className="text-xs text-slate-500 italic">Type a prompt to forecast the next tokens...</span>
+                  <span className="text-xs text-slate-500 italic">Type a prompt to forecast candidate words...</span>
                 )}
               </div>
             </div>
@@ -192,7 +245,7 @@ export const WritingStudio: React.FC = () => {
             {/* Action Bar */}
             <div className="mt-5 pt-4 border-t border-slate-800 flex items-center justify-between">
               <div className="text-xs text-slate-400 hidden sm:block">
-                Strategy: <span className="text-slate-200 font-medium capitalize">{strategy}</span> | Temp: <span className="text-slate-200 font-mono">{temperature}</span>
+                Mode: <span className="text-emerald-400 font-medium capitalize">{activeMode}</span> | Strategy: <span className="text-slate-200 font-medium capitalize">{strategy}</span> | Temp: <span className="text-slate-200 font-mono">{temperature}</span>
               </div>
 
               <button
@@ -215,15 +268,15 @@ export const WritingStudio: React.FC = () => {
             </div>
           </div>
 
-          {/* Sequential Completion Output Card */}
+          {/* Sequential Continuation Card */}
           {generation && (
             <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl">
               <div className="flex items-center justify-between mb-3 text-xs text-slate-400">
                 <span className="font-semibold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
-                  <Zap className="w-4 h-4" /> Sequential Continuation Result
+                  <Zap className="w-4 h-4" /> Sequential Continuation ({generation.model_name})
                 </span>
                 <span className="font-mono text-slate-400">
-                  Total latency: {generation.latency_ms} ms
+                  Latency: {generation.latency_ms} ms
                 </span>
               </div>
 
@@ -234,17 +287,18 @@ export const WritingStudio: React.FC = () => {
                 </span>
               </div>
 
-              <div className="mt-4">
-                <span className="text-xs text-slate-400 font-medium block mb-2">Generated Token Breakdown:</span>
-                <div className="flex flex-wrap gap-2">
-                  {generation.tokens_generated.map((t, idx) => (
-                    <div key={idx} className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-slate-800 border border-slate-700/60 text-xs">
-                      <span className="text-slate-200 font-medium">{t.token}</span>
-                      <span className="text-emerald-400 font-mono">{(t.probability * 100).toFixed(1)}%</span>
-                    </div>
-                  ))}
+              {generation.tokens_generated.length > 0 && (
+                <div className="mt-4">
+                  <span className="text-xs text-slate-400 font-medium block mb-2">Token Breakdown:</span>
+                  <div className="flex flex-wrap gap-2">
+                    {generation.tokens_generated.map((t, idx) => (
+                      <div key={idx} className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-slate-800 border border-slate-700/60 text-xs">
+                        <span className="text-slate-200 font-medium">{t.token}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           )}
         </div>
@@ -293,10 +347,6 @@ export const WritingStudio: React.FC = () => {
                   onChange={(e) => setTemperature(parseFloat(e.target.value))}
                   className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-500"
                 />
-                <div className="flex justify-between text-[10px] text-slate-500 mt-1">
-                  <span>Deterministic (0.1)</span>
-                  <span>Creative (1.8)</span>
-                </div>
               </div>
 
               {/* Top-K */}
@@ -325,7 +375,7 @@ export const WritingStudio: React.FC = () => {
                 <input
                   type="range"
                   min="1"
-                  max="15"
+                  max="30"
                   step="1"
                   value={maxTokens}
                   onChange={(e) => setMaxTokens(parseInt(e.target.value))}
@@ -335,24 +385,36 @@ export const WritingStudio: React.FC = () => {
             </div>
           </div>
 
-          {/* Model Context Card */}
+          {/* Active Model Context Card */}
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl text-xs space-y-3">
-            <span className="font-semibold uppercase tracking-wider text-slate-400 block">Active Model Specs</span>
+            <span className="font-semibold uppercase tracking-wider text-slate-400 block">Selected Model Specs</span>
             <div className="flex justify-between border-b border-slate-800 pb-2">
-              <span className="text-slate-400">Architecture</span>
-              <span className="text-slate-200 font-mono">BiLSTM (150 hidden)</span>
+              <span className="text-slate-400">Mode</span>
+              <span className="text-emerald-400 font-semibold uppercase">{activeMode}</span>
             </div>
             <div className="flex justify-between border-b border-slate-800 pb-2">
-              <span className="text-slate-400">Vocabulary Size</span>
-              <span className="text-slate-200 font-mono">7,299 tokens</span>
+              <span className="text-slate-400">Architecture</span>
+              <span className="text-slate-200 font-mono">
+                {activeMode === 'general' ? 'DistilGPT-2 (Transformer)' : 'BiLSTM (150 units)'}
+              </span>
+            </div>
+            <div className="flex justify-between border-b border-slate-800 pb-2">
+              <span className="text-slate-400">Vocabulary</span>
+              <span className="text-slate-200 font-mono">
+                {activeMode === 'general' ? '50,257 BPE' : '7,299 tokens'}
+              </span>
             </div>
             <div className="flex justify-between border-b border-slate-800 pb-2">
               <span className="text-slate-400">Parameters</span>
-              <span className="text-slate-200 font-mono">3,229,299</span>
+              <span className="text-slate-200 font-mono">
+                {activeMode === 'general' ? '81,912,576' : '3,229,299'}
+              </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-slate-400">Weights File</span>
-              <span className="text-emerald-400 font-mono">models/current/model.pt</span>
+              <span className="text-slate-400">License</span>
+              <span className="text-emerald-400 font-mono">
+                {activeMode === 'general' ? 'Apache 2.0' : 'MIT'}
+              </span>
             </div>
           </div>
         </div>

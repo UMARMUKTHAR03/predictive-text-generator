@@ -1,3 +1,5 @@
+export type WritingMode = 'general' | 'technical';
+
 export interface PredictionCandidate {
   word: string;
   probability: number;
@@ -6,9 +8,11 @@ export interface PredictionCandidate {
 
 export interface PredictResponse {
   input_text: string;
+  mode: WritingMode;
   tokens: string[];
   candidates: PredictionCandidate[];
   latency_ms: number;
+  model_name: string;
   model_version: string;
 }
 
@@ -19,86 +23,70 @@ export interface GenerationToken {
 
 export interface GenerateResponse {
   prompt: string;
+  mode: WritingMode;
   generated_text: string;
   completed_text: string;
   tokens_generated: GenerationToken[];
   strategy_used: string;
   latency_ms: number;
+  model_name: string;
+}
+
+export interface ModeStatus {
+  name: string;
+  loaded: boolean;
+  description: string;
+  architecture: string;
+  parameters: number;
+}
+
+export interface HealthStatus {
+  status: string;
+  version: string;
+  device: string;
+  technical_model_loaded: boolean;
+  general_model_loaded: boolean;
+  modes: {
+    general?: ModeStatus;
+    technical?: ModeStatus;
+  };
 }
 
 export interface ModelInfo {
   name: string;
   version: string;
-  architecture: string;
-  vocab_size: number;
-  embedding_dim: number;
-  hidden_dim: number;
-  max_sequence_len: number;
-  total_parameters: number;
   device: string;
-  metrics: {
-    test_loss: number;
-    test_perplexity: number;
-    top1_accuracy: number;
-    top3_accuracy: number;
-    top5_accuracy: number;
-    top10_accuracy: number;
-    latencies?: {
-      model_forward_pass_ms: {
-        mean: number;
-        median: number;
-        p95: number;
-        description: string;
-      };
-      full_local_service_ms: {
-        mean: number;
-        median: number;
-        p95: number;
-        description: string;
-      };
-      note_on_historical_0_33ms: string;
+  modes: {
+    general: {
+      name: string;
+      model_id: string;
+      architecture: string;
+      parameters: number;
+      vocab_size: number;
+      license: string;
+      context_length: number;
+      domain: string;
     };
-    baseline_comparison?: {
-      baseline_model: string;
-      most_frequent_training_word: string;
-      baseline_top1_accuracy: number;
-      baseline_top3_accuracy: number;
-      baseline_top5_accuracy: number;
-      baseline_top10_accuracy: number;
-      generalization_gap_analysis: {
-        vocab_size: number;
-        random_guess_top1: number;
-        unigram_baseline_top1: number;
-        model_test_top1: number;
-        model_test_top5: number;
-        model_test_top10: number;
-        train_test_gap_explanation: string;
+    technical: {
+      name: string;
+      architecture: string;
+      vocab_size: number;
+      parameters: number;
+      metrics: any;
+      dataset: {
+        name: string;
+        domain: string;
+        split: string;
       };
-    };
-    historical_comparison?: {
-      notebook_epoch_50_train_accuracy: number;
-      notebook_epoch_50_train_loss: number;
-      notebook_leakage_note: string;
     };
   };
-  dataset: {
-    name: string;
-    domain: string;
-    split: string;
-    total_articles?: number;
-  };
-}
-
-export interface HealthStatus {
-  status: string;
-  model_loaded: boolean;
-  version: string;
-  device: string;
 }
 
 export interface AnalyticsData {
   total_predictions: number;
   total_generations: number;
+  predictions_by_mode: Record<string, number>;
+  generations_by_mode: Record<string, number>;
   avg_latency_ms: number;
   uptime_seconds: number;
 }

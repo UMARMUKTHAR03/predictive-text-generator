@@ -5,43 +5,59 @@ import { Navbar } from '../components/Navbar';
 import { Dashboard } from '../pages/Dashboard';
 
 describe('Frontend Component Tests', () => {
-  it('renders Navbar with title and status badge', () => {
+  it('renders Navbar with title and dual mode indicators', () => {
     render(
       <Navbar
         activeTab="dashboard"
         setActiveTab={() => {}}
-        health={{ status: 'healthy', model_loaded: true, version: '1.0.0', device: 'cpu' }}
-        backendUrl="http://127.0.0.1:8000"
+        health={{ 
+          status: 'healthy', 
+          version: '2.0.0', 
+          device: 'cpu',
+          technical_model_loaded: true,
+          general_model_loaded: true,
+          modes: {}
+        }}
+        activeMode="general"
+        setActiveMode={() => {}}
       />
     );
     expect(screen.getByText(/NeuroText/i)).toBeInTheDocument();
-    expect(screen.getByText(/PyTorch BiLSTM Online/i)).toBeInTheDocument();
+    expect(screen.getByText(/General English \(DistilGPT-2\)/i)).toBeInTheDocument();
+    expect(screen.getByText(/Technical Writing \(BiLSTM\)/i)).toBeInTheDocument();
   });
 
-  it('renders Dashboard with genuine holdout benchmark metrics', () => {
+  it('renders Dashboard with both General and Technical model engines', () => {
     const mockModelInfo = {
-      name: 'NeuroText AI BiLSTM',
-      version: '1.0.0',
-      architecture: 'Bidirectional LSTM',
-      vocab_size: 7299,
-      embedding_dim: 100,
-      hidden_dim: 150,
-      max_sequence_len: 40,
-      total_parameters: 3229299,
+      name: 'NeuroText AI Dual Engine',
+      version: '2.0.0',
       device: 'cpu',
-      metrics: {
-        test_loss: 6.38,
-        test_perplexity: 587.8,
-        top1_accuracy: 0.1518,
-        top3_accuracy: 0.2279,
-        top5_accuracy: 0.2744,
-        top10_accuracy: 0.3445,
-        avg_inference_latency_ms: 0.33,
-      },
-      dataset: {
-        name: 'Medium Articles',
-        domain: 'Data science headlines',
-        split: '80/10/10 split',
+      modes: {
+        general: {
+          name: 'DistilGPT-2',
+          model_id: 'distilbert/distilgpt2',
+          architecture: 'Causal Transformer',
+          parameters: 81912576,
+          vocab_size: 50257,
+          license: 'Apache 2.0',
+          context_length: 1024,
+          domain: 'General English',
+        },
+        technical: {
+          name: 'Technical Writing (PyTorch BiLSTM)',
+          architecture: 'Bidirectional LSTM',
+          vocab_size: 7299,
+          parameters: 3229299,
+          metrics: {
+            top1_accuracy: 0.1518,
+            top5_accuracy: 0.2744,
+          },
+          dataset: {
+            name: 'Medium Articles',
+            domain: 'Technical publication titles',
+            split: '80/10/10 split',
+          },
+        },
       },
     };
 
@@ -49,12 +65,13 @@ describe('Frontend Component Tests', () => {
       <Dashboard
         setActiveTab={() => {}}
         modelInfo={mockModelInfo}
-        health={{ status: 'healthy', model_loaded: true, version: '1.0.0', device: 'cpu' }}
+        activeMode="general"
+        setActiveMode={() => {}}
       />
     );
 
-    expect(screen.getByText(/15.18%/i)).toBeInTheDocument();
-    expect(screen.getByText(/27.44%/i)).toBeInTheDocument();
-    expect(screen.getByText(/587.8/i)).toBeInTheDocument();
+    const matches = screen.getAllByText(/DistilGPT-2 Autoregressive Transformer/i);
+    expect(matches.length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText(/PyTorch Bidirectional LSTM/i)).toBeInTheDocument();
   });
 });

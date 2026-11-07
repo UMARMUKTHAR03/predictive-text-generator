@@ -1,4 +1,4 @@
-import { PredictResponse, GenerateResponse, ModelInfo, HealthStatus, AnalyticsData } from '../types/api';
+import { PredictResponse, GenerateResponse, ModelInfo, HealthStatus, AnalyticsData, WritingMode } from '../types/api';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? 'https://neurotext-ai-api.onrender.com' : 'http://127.0.0.1:8000');
 
@@ -25,11 +25,16 @@ export class ApiClient {
     return res.json();
   }
 
-  static async predict(text: string, topK: number = 5, temperature: number = 1.0): Promise<PredictResponse> {
+  static async predict(
+    text: string,
+    mode: WritingMode = 'general',
+    topK: number = 5,
+    temperature: number = 1.0
+  ): Promise<PredictResponse> {
     const res = await fetch(`${this.baseUrl}/predict`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text, top_k: topK, temperature }),
+      body: JSON.stringify({ text, mode, top_k: topK, temperature }),
     });
     if (!res.ok) {
       const err = await res.json().catch(() => ({ detail: res.statusText }));
@@ -40,20 +45,24 @@ export class ApiClient {
 
   static async generate(
     prompt: string,
-    maxTokens: number = 5,
+    mode: WritingMode = 'general',
+    maxTokens: number = 10,
     temperature: number = 0.8,
     strategy: string = 'greedy',
-    topK: number = 5
+    topK: number = 5,
+    repetitionPenalty: number = 1.1
   ): Promise<GenerateResponse> {
     const res = await fetch(`${this.baseUrl}/generate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         prompt,
+        mode,
         max_tokens: maxTokens,
         temperature,
         strategy,
         top_k: topK,
+        repetition_penalty: repetitionPenalty
       }),
     });
     if (!res.ok) {

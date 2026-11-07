@@ -1,17 +1,22 @@
 import React, { useState } from 'react';
-import { Settings as SettingsIcon, Server, Save, Check, RefreshCw } from 'lucide-react';
+import { Settings as SettingsIcon, Server, Save, Check, Globe2, TerminalSquare } from 'lucide-react';
 import { ApiClient } from '../services/api';
+import { WritingMode } from '../types/api';
 
 interface SettingsProps {
   backendUrl: string;
   setBackendUrl: (url: string) => void;
   onRefreshHealth: () => void;
+  activeMode: WritingMode;
+  setActiveMode: (mode: WritingMode) => void;
 }
 
 export const Settings: React.FC<SettingsProps> = ({ 
   backendUrl, 
   setBackendUrl, 
-  onRefreshHealth 
+  onRefreshHealth,
+  activeMode,
+  setActiveMode 
 }) => {
   const [urlInput, setUrlInput] = useState(backendUrl);
   const [saved, setSaved] = useState(false);
@@ -29,13 +34,54 @@ export const Settings: React.FC<SettingsProps> = ({
       <div>
         <h1 className="text-2xl font-bold text-white flex items-center gap-2">
           <SettingsIcon className="w-6 h-6 text-emerald-400" />
-          System Settings & API Configuration
+          System Settings & Model Configuration
         </h1>
         <p className="text-sm text-slate-400 mt-1">
-          Configure API connection endpoints, environment variables, and client telemetry.
+          Configure API connection endpoints, active language models, and client preferences.
         </p>
       </div>
 
+      {/* Model Mode Preference */}
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+        <h3 className="text-sm font-semibold text-white">Default Writing Mode</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div 
+            onClick={() => setActiveMode('general')}
+            className={`p-4 rounded-xl border cursor-pointer transition ${
+              activeMode === 'general'
+                ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-300'
+                : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:text-white'
+            }`}
+          >
+            <div className="flex items-center gap-2 font-semibold text-sm mb-1 text-white">
+              <Globe2 className="w-4 h-4 text-emerald-400" />
+              General English (DistilGPT-2)
+            </div>
+            <p className="text-xs text-slate-400">
+              Open-domain everyday English, emails, creative stories, conversational communication.
+            </p>
+          </div>
+
+          <div 
+            onClick={() => setActiveMode('technical')}
+            className={`p-4 rounded-xl border cursor-pointer transition ${
+              activeMode === 'technical'
+                ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-300'
+                : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:text-white'
+            }`}
+          >
+            <div className="flex items-center gap-2 font-semibold text-sm mb-1 text-white">
+              <TerminalSquare className="w-4 h-4 text-teal-400" />
+              Technical Writing (BiLSTM)
+            </div>
+            <p className="text-xs text-slate-400">
+              Specialized in artificial intelligence, machine learning, Python, and data science titles.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* API Endpoint Configuration */}
       <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-6">
         <div>
           <label className="text-sm font-semibold text-white block mb-2 flex items-center gap-2">
@@ -58,9 +104,6 @@ export const Settings: React.FC<SettingsProps> = ({
               {saved ? 'Saved' : 'Save'}
             </button>
           </div>
-          <p className="text-xs text-slate-500 mt-2">
-            Local development uses <span className="font-mono text-slate-400">http://127.0.0.1:8000</span>. Cloud deployment uses Render URL.
-          </p>
         </div>
 
         <div className="pt-4 border-t border-slate-800 space-y-3">

@@ -6,10 +6,11 @@ import { ModelIntelligence } from './pages/ModelIntelligence';
 import { Analytics } from './pages/Analytics';
 import { Settings } from './pages/Settings';
 import { ApiClient } from './services/api';
-import { ModelInfo, HealthStatus } from './types/api';
+import { ModelInfo, HealthStatus, WritingMode } from './types/api';
 
 export function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [activeMode, setActiveMode] = useState<WritingMode>('general');
   const [modelInfo, setModelInfo] = useState<ModelInfo | null>(null);
   const [health, setHealth] = useState<HealthStatus | null>(null);
   const [backendUrl, setBackendUrl] = useState(ApiClient.getBaseUrl());
@@ -21,7 +22,14 @@ export function App() {
       const info = await ApiClient.getModelInfo();
       setModelInfo(info);
     } catch {
-      setHealth({ status: 'offline', model_loaded: false, version: '1.0.0', device: 'cpu' });
+      setHealth({ 
+        status: 'offline', 
+        version: '2.0.0', 
+        device: 'cpu',
+        technical_model_loaded: false,
+        general_model_loaded: false,
+        modes: {}
+      });
     }
   };
 
@@ -35,7 +43,8 @@ export function App() {
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         health={health}
-        backendUrl={backendUrl}
+        activeMode={activeMode}
+        setActiveMode={setActiveMode}
       />
 
       <main className="flex-1">
@@ -43,21 +52,29 @@ export function App() {
           <Dashboard
             setActiveTab={setActiveTab}
             modelInfo={modelInfo}
-            health={health}
+            activeMode={activeMode}
+            setActiveMode={setActiveMode}
           />
         )}
-        {activeTab === 'studio' && <WritingStudio />}
+        {activeTab === 'studio' && (
+          <WritingStudio
+            activeMode={activeMode}
+            setActiveMode={setActiveMode}
+          />
+        )}
         {activeTab === 'intelligence' && (
           <ModelIntelligence modelInfo={modelInfo} />
         )}
         {activeTab === 'analytics' && (
-          <Analytics modelInfo={modelInfo} />
+          <Analytics />
         )}
         {activeTab === 'settings' && (
           <Settings
             backendUrl={backendUrl}
             setBackendUrl={setBackendUrl}
             onRefreshHealth={fetchHealthAndInfo}
+            activeMode={activeMode}
+            setActiveMode={setActiveMode}
           />
         )}
       </main>
@@ -65,14 +82,14 @@ export function App() {
       <footer className="border-t border-slate-800/80 bg-slate-900/60 py-6 text-xs text-slate-500">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div>
-            NeuroText AI © 2026. PyTorch Bidirectional LSTM Language Platform.
+            NeuroText AI V2 © 2026. Dual-Mode Intelligent Predictive Writing Platform.
           </div>
           <div className="flex items-center gap-4">
-            <span className="font-mono">Vocab: 7,299 tokens</span>
+            <span className="font-mono text-emerald-400">General: DistilGPT-2 (82M)</span>
             <span>•</span>
-            <span className="font-mono">PyTorch 2.15 CPU</span>
+            <span className="font-mono text-teal-400">Technical: BiLSTM (3.2M)</span>
             <span>•</span>
-            <span className="text-emerald-400">Leak-Free Title Split</span>
+            <span>PyTorch CPU</span>
           </div>
         </div>
       </footer>
