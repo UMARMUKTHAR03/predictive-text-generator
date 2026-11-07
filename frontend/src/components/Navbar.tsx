@@ -106,15 +106,19 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* General Service Pill */}
             <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-800/80 border border-slate-700/60 text-xs">
               <span className={`inline-flex rounded-full h-2 w-2 ${
-                health?.general_model_loaded 
+                (health?.modes?.general?.provider_status === 'online' || health?.general_model_loaded)
                   ? 'bg-emerald-500' 
-                  : (health?.modes?.general?.description?.includes('Configured') ? 'bg-amber-500' : 'bg-slate-500')
+                  : (health?.modes?.general?.provider_status === 'configured'
+                      ? 'bg-amber-500' 
+                      : (health?.modes?.general?.provider_status === 'unavailable' ? 'bg-rose-500' : 'bg-slate-500'))
               }`}></span>
               <span className="text-slate-300 font-mono text-[11px] hidden sm:inline">
                 General: {
-                  health?.general_model_loaded 
+                  (health?.modes?.general?.provider_status === 'online' || health?.general_model_loaded)
                     ? 'Online' 
-                    : (health?.modes?.general?.description?.includes('Configured') ? 'Configured' : (health?.modes?.general?.description?.includes('Unavailable') ? 'Unavailable' : 'Standby'))
+                    : (health?.modes?.general?.provider_status === 'configured' 
+                        ? 'Configured' 
+                        : (health?.modes?.general?.provider_status === 'unavailable' ? 'Unavailable' : 'Standby'))
                 }
               </span>
             </div>

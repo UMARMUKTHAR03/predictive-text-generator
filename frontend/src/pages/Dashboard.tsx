@@ -35,7 +35,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
         <div className="relative z-10 max-w-3xl">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-mono mb-4">
             <Zap className="w-3.5 h-3.5" />
-            NeuroText AI V2 • Dual Engine (DistilGPT-2 + BiLSTM)
+            NeuroText AI V2 • Dual Engine Platform
           </div>
 
           <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight leading-tight">
@@ -43,7 +43,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </h1>
 
           <p className="mt-4 text-base text-slate-300 leading-relaxed">
-            Full-stack neural writing assistance platform supporting both open-domain <strong>General English</strong> (via DistilGPT-2 autoregressive transformer) and specialized <strong>Technical Writing</strong> (via Bidirectional LSTM).
+            Full-stack neural writing assistance platform supporting both open-domain <strong>General English</strong> (via serverless Cloudflare Workers AI with Gemma 4 MoE) and specialized <strong>Technical Writing</strong> (via local PyTorch Bidirectional LSTM).
           </p>
 
           <div className="mt-6 flex flex-wrap gap-4 items-center">
@@ -75,20 +75,28 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-mono">
               <Globe2 className="w-3.5 h-3.5" /> General English Engine
             </span>
-            <span className="text-xs text-slate-400 font-mono">81.9M Parameters</span>
+            <span className="text-xs text-slate-400 font-mono">
+              {modelInfo?.modes?.general?.parameters ? `${(modelInfo.modes.general.parameters / 1e9).toFixed(0)}B Params` : '26B MoE'}
+            </span>
           </div>
-          <h3 className="text-lg font-bold text-white mb-2">DistilGPT-2 Autoregressive Transformer</h3>
+          <h3 className="text-lg font-bold text-white mb-2">
+            {modelInfo?.modes?.general?.name || 'Gemma 4 26B-A4B-IT (MoE)'}
+          </h3>
           <p className="text-xs text-slate-400 leading-relaxed mb-4">
-            Pretrained causal language model for open-domain English: professional emails, conversational sentences, articles, stories, and question-answering.
+            Cloudflare Workers AI serverless inference: professional emails, conversational sentences, articles, stories, and structured rank-only completions.
           </p>
           <div className="grid grid-cols-2 gap-3 text-xs mb-4">
             <div className="p-3 rounded-lg bg-slate-950/60 border border-slate-800">
               <span className="text-slate-500 block">Context Length</span>
-              <span className="text-slate-200 font-mono font-semibold">1,024 tokens</span>
+              <span className="text-slate-200 font-mono font-semibold">
+                {modelInfo?.modes?.general?.context_length ? `${modelInfo.modes.general.context_length.toLocaleString()} tokens` : '256,000 tokens'}
+              </span>
             </div>
             <div className="p-3 rounded-lg bg-slate-950/60 border border-slate-800">
               <span className="text-slate-500 block">Vocabulary</span>
-              <span className="text-slate-200 font-mono font-semibold">50,257 BPE</span>
+              <span className="text-slate-200 font-mono font-semibold">
+                {modelInfo?.modes?.general?.vocab_size ? `${modelInfo.modes.general.vocab_size.toLocaleString()}` : '256,000'}
+              </span>
             </div>
           </div>
           <button

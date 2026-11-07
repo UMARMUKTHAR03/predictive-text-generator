@@ -1,7 +1,8 @@
 import os
 import json
 import time
-from typing import List, Dict, Any
+from datetime import datetime, timezone
+from typing import List, Dict, Any, Optional
 from backend.app.services.cloudflare_workers_ai_service import CloudflareWorkersAIProvider
 
 EVALUATION_PROMPTS = [
@@ -32,57 +33,92 @@ EVALUATION_PROMPTS = [
     {"category": "Short Story", "prompt": "The autumn wind swept through the empty courtyard, scattering golden leaves across"}
 ]
 
-def generate_cloudflare_evaluation_report(provider: CloudflareWorkersAIProvider = None):
+def generate_offline_prompt_manifest() -> Dict[str, Any]:
     """
-    Evaluates 20 representative prompts across 5 key writing domains.
-    If live Cloudflare credentials are configured in environment variables,
-    queries the live API; otherwise utilizes the structured benchmark simulator.
+    Generates a prompt manifest when Cloudflare credentials are not configured.
+    Explicitly marked as unevaluated. Never overwrites the genuine evaluation artifact.
+    """
+    manifest = {
+        "status": "unevaluated_offline_manifest",
+        "description": "Standardized 20-prompt evaluation manifest for Google Gemma 4 26B-A4B-IT on Cloudflare Workers AI.",
+        "model_id": "@cf/google/gemma-4-26b-a4b-it",
+        "timestamp_utc": datetime.now(timezone.utc).isoformat(),
+        "prompt_count": len(EVALUATION_PROMPTS),
+        "categories": ["Email", "Everyday", "Educational", "Article", "Short Story"],
+        "prompts": EVALUATION_PROMPTS,
+        "note": (
+            "This file contains the benchmark prompt definitions. "
+            "Actual evaluations are executed only when valid CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN "
+            "credentials are provided. No simulated data is written to the genuine evaluation artifact."
+        )
+    }
+    out_file = "ml/artifacts/cloudflare_gemma_prompt_manifest.json"
+    os.makedirs(os.path.dirname(out_file), exist_ok=True)
+    with open(out_file, "w", encoding="utf-8") as f:
+        json.dump(manifest, f, indent=2)
+    print(f"Offline prompt manifest written to {out_file} (genuine evaluation preserved).")
+    return manifest
+
+def run_genuine_cloudflare_evaluation(provider: Optional[CloudflareWorkersAIProvider] = None) -> Dict[str, Any]:
+    """
+    Executes actual Cloudflare Workers AI inference across the 20 benchmark prompts.
+    Requires server credentials. Never fabricates predictions or tokens.
     """
     if provider is None:
         provider = CloudflareWorkersAIProvider()
 
+    if not provider.is_configured:
+        print("Notice: Cloudflare Workers AI credentials unconfigured. Writing offline prompt manifest instead.")
+        return generate_offline_prompt_manifest()
+
+    print(f"Executing genuine Cloudflare Workers AI evaluation for {provider.model_id}...")
     results: List[Dict[str, Any]] = []
+    successful_requests = 0
+    failed_requests = 0
 
     for item in EVALUATION_PROMPTS:
         cat = item["category"]
         prompt = item["prompt"]
-        
-        # When unconfigured in offline/CI, provide simulated evaluation samples
-        if not provider.is_configured:
-            continuation = f"[Simulated continuation for '{prompt}']"
-            suggestions = ["first", "second", "third", "fourth", "fifth"]
-            lat = 120.0
-        else:
-            try:
-                continuation, completed, tokens, lat_gen = provider.generate_continuation(prompt, max_tokens=15)
-                cands, toks, lat_pred = provider.predict_next_words(prompt, top_k=5)
-                suggestions = [c.word for c in cands]
-                lat = round(lat_gen + lat_pred, 1)
-            except Exception as e:
-                continuation = f"[Provider error: {str(e)}]"
-                suggestions = []
-                lat = 0.0
+        try:
+            continuation, completed, tokens, lat_gen = provider.generate_continuation(prompt, max_tokens=15)
+            cands, toks, lat_pred = provider.predict_next_words(prompt, top_k=5)
+            suggestions = [c.word for c in cands]
+            total_lat = round(lat_gen + lat_pred, 1)
+            successful_requests += 1
+            error_msg = None
+        except Exception as e:
+            continuation = None
+            suggestions = []
+            total_lat = 0.0
+            failed_requests += 1
+            error_msg = str(e)
 
         results.append({
             "category": cat,
             "prompt": prompt,
             "continuation": continuation,
-            "top_suggestions": suggestions,
-            "latency_ms": lat
+            "ranked_suggestions": suggestions,
+            "latency_ms": total_lat,
+            "status": "success" if error_msg is None else "failed",
+            "error": error_msg
         })
 
     report = {
+        "status": "genuine_evaluated" if failed_requests == 0 else "partial_evaluated",
         "model_id": provider.model_id,
         "provider": "Cloudflare Workers AI",
-        "live_credentials_present": provider.is_configured,
-        "prompt_count": len(results),
+        "timestamp_utc": datetime.now(timezone.utc).isoformat(),
+        "total_prompts": len(results),
+        "successful_requests": successful_requests,
+        "failed_requests": failed_requests,
         "categories_covered": ["Email", "Everyday", "Educational", "Article", "Short Story"],
         "results": results,
-        "methodology_notice": (
-            "This evaluation measures qualitative generation quality and candidate forecasting "
-            "for Llama 3.2 1B Instruct via Cloudflare Workers AI. "
-            "It does NOT claim mathematical or architectural equivalence to DistilGPT-2 or the custom BiLSTM. "
-            "All model benchmarks and parameter counts are reported independently."
+        "methodology": (
+            "Genuine evaluation of Google Gemma 4 26B-A4B-IT (@cf/google/gemma-4-26b-a4b-it) "
+            "conducted via Cloudflare Workers AI OpenAI-compatible chat completions interface. "
+            "Suggestions are ranked (#1 to #k) without fabricating unmeasured probabilities. "
+            "This model operates as a serverless 26B Mixture-of-Experts (4B active) model, "
+            "completely distinct from the research DistilGPT-2 and custom BiLSTM models."
         )
     }
 
@@ -90,9 +126,8 @@ def generate_cloudflare_evaluation_report(provider: CloudflareWorkersAIProvider 
     os.makedirs(os.path.dirname(out_file), exist_ok=True)
     with open(out_file, "w", encoding="utf-8") as f:
         json.dump(report, f, indent=2)
-    print(f"Cloudflare Workers AI evaluation report written to {out_file}!")
+    print(f"Genuine Cloudflare Workers AI evaluation written to {out_file}!")
     return report
 
 if __name__ == "__main__":
-    generate_cloudflare_evaluation_report()
-
+    run_genuine_cloudflare_evaluation()

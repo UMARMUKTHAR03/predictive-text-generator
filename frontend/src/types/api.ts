@@ -32,12 +32,15 @@ export interface GenerateResponse {
   model_name: string;
 }
 
+export type ProviderHealthStatus = 'unconfigured' | 'configured' | 'online' | 'unavailable';
+
 export interface ModeStatus {
   name: string;
   loaded: boolean;
   description: string;
   architecture: string;
   parameters: number;
+  provider_status?: ProviderHealthStatus;
 }
 
 export interface HealthStatus {
@@ -61,11 +64,21 @@ export interface ModelInfo {
       name: string;
       model_id: string;
       architecture: string;
-      parameters: number;
-      vocab_size: number;
-      license: string;
-      context_length: number;
-      domain: string;
+      parameters?: number;
+      active_parameters?: number;
+      vocab_size?: number;
+      license?: string;
+      license_url?: string;
+      model_card_url?: string;
+      lifecycle_status?: string;
+      context_length?: number;
+      domain?: string;
+      provider?: string;
+      provider_state?: string;
+      probabilities_available?: boolean;
+      ranking_mode?: string;
+      quota_notice?: string;
+      [key: string]: any;
     };
     technical: {
       name: string;

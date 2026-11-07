@@ -86,11 +86,13 @@ export function App() {
             NeuroText AI V2 © 2026. Dual-Mode Intelligent Predictive Writing Platform.
           </div>
           <div className="flex items-center gap-4">
-            <span className="font-mono text-emerald-400">General: DistilGPT-2 (82M)</span>
+            <span className="font-mono text-emerald-400">
+              General: {modelInfo?.modes?.general?.name || 'Gemma 4 26B-A4B-IT (Cloudflare)'}
+            </span>
             <span>•</span>
             <span className="font-mono text-teal-400">Technical: BiLSTM (3.2M)</span>
             <span>•</span>
-            <span>PyTorch CPU</span>
+            <span>Dual-Engine Language Intelligence</span>
           </div>
         </div>
       </footer>

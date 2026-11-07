@@ -52,6 +52,7 @@ class ModeStatus(BaseModel):
     description: str
     architecture: str
     parameters: int
+    provider_status: Optional[str] = "unconfigured"  # 'unconfigured' | 'configured' | 'online' | 'unavailable'
 
 class HealthResponse(BaseModel):
     status: str

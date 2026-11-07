@@ -1,0 +1,97 @@
+{
+  "status": "unevaluated_offline_manifest",
+  "description": "Standardized 20-prompt evaluation manifest for Google Gemma 4 26B-A4B-IT on Cloudflare Workers AI.",
+  "model_id": "@cf/google/gemma-4-26b-a4b-it",
+  "timestamp_utc": "2026-11-07T22:14:36.811278+00:00",
+  "prompt_count": 20,
+  "categories": [
+    "Email",
+    "Everyday",
+    "Educational",
+    "Article",
+    "Short Story"
+  ],
+  "prompts": [
+    {
+      "category": "Email",
+      "prompt": "I am writing this email to follow up on our discussion regarding"
+    },
+    {
+      "category": "Email",
+      "prompt": "Please find attached the updated project roadmap and"
+    },
+    {
+      "category": "Email",
+      "prompt": "Thank you for your prompt reply regarding the contract"
+    },
+    {
+      "category": "Email",
+      "prompt": "Could you please clarify the scheduled timeline for the"
+    },
+    {
+      "category": "Everyday",
+      "prompt": "The weather today in the city is surprisingly"
+    },
+    {
+      "category": "Everyday",
+      "prompt": "We are planning to visit our grandparents this coming"
+    },
+    {
+      "category": "Everyday",
+      "prompt": "After finishing work today, I decided to go for a long walk in"
+    },
+    {
+      "category": "Everyday",
+      "prompt": "Can you recommend a good place to have dinner near"
+    },
+    {
+      "category": "Educational",
+      "prompt": "Photosynthesis is the fundamental biological process through which plants"
+    },
+    {
+      "category": "Educational",
+      "prompt": "The industrial revolution fundamentally transformed European society by"
+    },
+    {
+      "category": "Educational",
+      "prompt": "In calculus, the derivative represents the instantaneous rate of"
+    },
+    {
+      "category": "Educational",
+      "prompt": "Gravitational waves are ripples in the fabric of spacetime created by"
+    },
+    {
+      "category": "Article",
+      "prompt": "Renewable energy infrastructure has experienced unprecedented growth across"
+    },
+    {
+      "category": "Article",
+      "prompt": "Recent advancements in semiconductor manufacturing indicate that global chip"
+    },
+    {
+      "category": "Article",
+      "prompt": "Urban planners are increasingly focusing on sustainable public transit to reduce"
+    },
+    {
+      "category": "Article",
+      "prompt": "The annual technology symposium highlighted emerging breakthroughs in synthetic"
+    },
+    {
+      "category": "Short Story",
+      "prompt": "The ancient lantern flickered softly against the damp stone walls of the"
+    },
+    {
+      "category": "Short Story",
+      "prompt": "As the spacecraft exited hyperspace, the uncharted planet appeared on the main"
+    },
+    {
+      "category": "Short Story",
+      "prompt": "Elena opened the weathered wooden chest and found an old brass compass and"
+    },
+    {
+      "category": "Short Story",
+      "prompt": "The autumn wind swept through the empty courtyard, scattering golden leaves across"
+    }
+  ],
+  "note": "This file contains the benchmark prompt definitions. Actual evaluations are executed only when valid CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN credentials are provided. No simulated data is written to the genuine evaluation artifact."
+}

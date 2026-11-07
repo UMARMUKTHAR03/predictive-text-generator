@@ -60,7 +60,9 @@ class CloudflareWorkersAIProvider:
         params = 26000000000 if is_gemma else 1230000000
         active_params = 4000000000 if is_gemma else 1230000000
         context_len = 256000 if is_gemma else 8192
-        license_str = "Gemma Open Model License" if is_gemma else "Llama 3.2 Community License"
+        license_str = "Apache 2.0 (Google Gemma Terms & Apache 2.0)" if is_gemma else "Llama 3.2 Community License"
+        license_url = "https://www.apache.org/licenses/LICENSE-2.0" if is_gemma else "https://llama.meta.com/llama3/license/"
+        model_card_url = "https://developers.cloudflare.com/workers-ai/models/gemma-4-26b-a4b-it/" if is_gemma else "https://developers.cloudflare.com/workers-ai/models/"
         lifecycle_status = "Active Supported (No planned deprecation)" if is_gemma else "Deprecated on Nov 20, 2026"
 
         return {
@@ -73,6 +75,8 @@ class CloudflareWorkersAIProvider:
             "vocab_size": 256000 if is_gemma else 128256,
             "context_length": context_len,
             "license": license_str,
+            "license_url": license_url,
+            "model_card_url": model_card_url,
             "lifecycle_status": lifecycle_status,
             "domain": "General English (Open-domain conversations, emails, creative writing, articles)",
             "is_configured": self.is_configured,

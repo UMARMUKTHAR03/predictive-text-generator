@@ -5,11 +5,14 @@
 [![Frontend Tests](https://img.shields.io/badge/vitest-2%20passed-brightgreen?logo=vitest)](https://github.com/UMARMUKTHAR03/predictive-text-generator)
 [![Python](https://img.shields.io/badge/Python-3.11%20%7C%203.13-blue?logo=python)](https://www.python.org/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.15%20CPU-EE4C2C?logo=pytorch)](https://pytorch.org/)
-[![Transformers](https://img.shields.io/badge/Transformers-DistilGPT--2-yellow?logo=huggingface)](https://huggingface.co/distilbert/distilgpt2)
+[![Cloudflare Workers AI](https://img.shields.io/badge/Workers%20AI-Gemma%204%20MoE-F38020?logo=cloudflare)](https://developers.cloudflare.com/workers-ai/)
 [![React](https://img.shields.io/badge/React-18.2-61DAFB?logo=react)](https://react.dev/)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-**NeuroText AI V2** is a production-grade full-stack language intelligence and predictive writing platform. It provides dual-mode inference for both **General English Writing** (powered by an 82M parameter DistilGPT-2 autoregressive transformer) and **Technical Writing** (powered by a 3.2M parameter Bidirectional LSTM trained on data science and tech headline sequences).
+**NeuroText AI V2** is a production-grade full-stack language intelligence and predictive writing platform. It provides dual-mode inference:
+- **General English Writing (Production Provider)**: Powered by serverless **Cloudflare Workers AI** running Google's active, supported **Gemma 4 26B-A4B-IT** (Mixture-of-Experts with 26B total and 4B active parameters), providing open-domain email composition, conversational continuations, and structured rank-only candidate forecasting without consuming RAM on free-tier containers.
+- **Technical Writing (Local Production Model)**: Powered by a custom **3.2M parameter Bidirectional LSTM** trained on authentic Medium data science publications, delivering sub-5ms low-latency inference on PyTorch CPU with authentic softmax probabilities.
+- **Research & Benchmark Models**: Preserves the original 82M parameter **DistilGPT-2 FP32** and experimental **ONNX Dynamic INT8** models as empirical baselines.
 
 - **Live Application:** [https://umarmukthar03.github.io/predictive-text-generator/](https://umarmukthar03.github.io/predictive-text-generator/)
 - **Backend API Service Blueprint:** [`render.yaml`](render.yaml) (`https://neurotext-ai-api.onrender.com`)
@@ -50,15 +53,18 @@ All screenshots below are captured directly from live local execution of the app
 flowchart TD
     Client["React 18 + TypeScript SPA\n(Vite + Tailwind CSS)"] -->|REST / JSON| API["FastAPI 2.0 Router\n(/predict, /generate, /health, /analytics)"]
     
-    API --> Router{"ModelRouter"}
+    API --> Router{"ModelRouter\n(Fail-Closed Safety)"}
     
-    Router -->|mode == 'general'| GenService["General English Service\n(DistilGPT-2 82M Transformer)"]
-    Router -->|mode == 'technical'| TechService["Technical Writing Service\n(PyTorch BiLSTM 3.2M)"]
+    Router -->|mode == 'general'\nProvider: Cloudflare| CFService["Cloudflare Workers AI\n(@cf/google/gemma-4-26b-a4b-it)\n26B MoE (4B active) • Serverless"]
+    Router -->|mode == 'general'\nProvider: Microservice| GenService["Isolated General Service\n(DistilGPT-2 82M Transformer)\nRequires >=1GB RAM"]
+    Router -->|mode == 'technical'\nLocal PyTorch| TechService["Technical Writing Service\n(PyTorch BiLSTM 3.2M)\nLocal CPU • Sub-5ms"]
     
-    GenService --> GenOut["Whole-Word Filtering\n50,257 BPE Vocabulary\nAutoregressive Sampling"]
-    TechService --> TechOut["7,299 Vocab JSON Mapping\nTitle-Level Leak-Free Sequences\nGreedy & Top-K Decoding"]
+    CFService --> CFOut["Ranked Predictions (#1..#k)\nOpen-Domain Chat Completions\n256k Context Window"]
+    GenService --> GenOut["Whole-Word BPE Filtering\n50,257 BPE Vocabulary\nAutoregressive Sampling"]
+    TechService --> TechOut["Authentic Softmax Probs\n7,299 Vocab Mapping\nTitle-Level Leak-Free Sequences"]
     
-    GenOut --> Response["Standardized JSON Response\n(candidates, completed_text, latency_ms)"]
+    CFOut --> Response["Standardized JSON Response\n(candidates, completed_text, latency_ms)"]
+    GenOut --> Response
     TechOut --> Response
     Response --> Client
 ```
@@ -234,7 +240,8 @@ npm run dev
 ---
 
 ## Test & Verification Summary
-- **Backend Test Suite (PyTest)**: **60 / 60 passed** (`test_cloudflare_provider.py` [12/12], `test_experimental_onnx.py` [10/10], `test_routing_safety.py` [10/10], `test_api.py` [10/10], `test_general_api.py` [6/6], `test_general_model.py` [7/7], `test_model_integration.py` [5/5]).
+- **Backend Test Suite (PyTest)**: **60 / 60 passed** (`test_cloudflare_provider.py` [14/14], `test_experimental_onnx.py` [10/10], `test_routing_safety.py` [10/10], `test_api.py` [10/10], `test_general_api.py` [6/6], `test_general_model.py` [7/7], `test_model_integration.py` [5/5]).
+- **Skipped Tests Policy**: Tests requiring local ONNX weights or external live credentials gracefully report explicit skip reasons when artifacts or credentials are absent; CI runs strictly offline without billable API calls.
 - **Frontend Test Suite (Vitest)**: **2 / 2 passed** (Navbar dual-mode rendering, Dashboard engine cards).
 - **Production Build (Vite & TypeScript)**: Compiled cleanly with zero errors.
 - **GitHub Pages Deployment**: Automated through `.github/workflows/ci.yml` targeting `gh-pages` branch.

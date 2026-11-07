@@ -134,12 +134,15 @@ class ModelRouter:
         general_params = 81912576
         general_desc = "82M parameter transformer (unconfigured / offline)"
 
+        general_provider_status = "unconfigured"
+
         if self.is_cloudflare_provider:
             cf = self.cloudflare_service
             general_name = f"General English ({cf.metadata['name']})"
             general_arch = cf.metadata["architecture"]
             general_params = cf.metadata["parameters"]
             state = cf.provider_state
+            general_provider_status = state
             if state == "online":
                 general_is_loaded = True
                 general_desc = f"Managed Cloudflare Workers AI ({cf.model_id}) - Online"
@@ -154,9 +157,11 @@ class ModelRouter:
                 general_desc = "Cloudflare Workers AI unconfigured (missing server credentials)"
         elif self.general_api_url:
             general_is_loaded = self.check_remote_general_health()
+            general_provider_status = "online" if general_is_loaded else "unavailable"
             general_desc = f"82M parameter causal autoregressive transformer hosted at {self.general_api_url}"
         elif self.allow_local_general and self._local_general_service is not None:
             general_is_loaded = self._local_general_service.is_loaded
+            general_provider_status = "online" if general_is_loaded else "configured"
             general_desc = "82M parameter transformer (local opt-in)"
 
         modes = {
@@ -165,14 +170,16 @@ class ModelRouter:
                 loaded=self.technical_manager.is_loaded,
                 description="Bidirectional LSTM trained on technical publications & headline sequences",
                 architecture="Embedding (100d) -> BiLSTM (150 units) -> Linear Head",
-                parameters=3229299
+                parameters=3229299,
+                provider_status="online" if self.technical_manager.is_loaded else "unavailable"
             ),
             "general": ModeStatus(
                 name=general_name,
                 loaded=general_is_loaded,
                 description=general_desc,
                 architecture=general_arch,
-                parameters=general_params
+                parameters=general_params,
+                provider_status=general_provider_status
             )
         }
 

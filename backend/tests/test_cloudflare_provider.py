@@ -215,3 +215,31 @@ def test_no_secret_exposure_in_responses(monkeypatch):
     assert "secret_acc_id_789" not in health_str
     assert "secret_acc_id_789" not in meta_str
 
+def test_evaluation_unconfigured_produces_prompt_manifest(monkeypatch, tmp_path):
+    # Ensure unconfigured evaluation never fabricates evaluation metrics
+    monkeypatch.delenv("CLOUDFLARE_ACCOUNT_ID", raising=False)
+    monkeypatch.delenv("CLOUDFLARE_API_TOKEN", raising=False)
+    from ml.training.evaluate_cloudflare_general import run_genuine_cloudflare_evaluation
+    provider = CloudflareWorkersAIProvider(account_id="", api_token="")
+    res = run_genuine_cloudflare_evaluation(provider)
+    assert res["status"] == "unevaluated_offline_manifest"
+    assert res["model_id"] == "@cf/google/gemma-4-26b-a4b-it"
+    assert "prompts" in res
+    assert len(res["prompts"]) == 20
+
+def test_evaluation_configured_mocked_execution(monkeypatch):
+    from ml.training.evaluate_cloudflare_general import run_genuine_cloudflare_evaluation
+    provider = CloudflareWorkersAIProvider(account_id="mock_acc", api_token="mock_tok")
+
+    with patch.object(provider, "generate_continuation", return_value=("continuation text", "prompt continuation text", [], 110.0)), \
+         patch.object(provider, "predict_next_words", return_value=([PredictionCandidate(word="test", probability=0.0, rank=1)], ["test"], 45.0)):
+        res = run_genuine_cloudflare_evaluation(provider)
+        assert res["status"] == "genuine_evaluated"
+        assert res["successful_requests"] == 20
+        assert res["failed_requests"] == 0
+        assert "Gemma 4" in res["methodology"]
+        assert len(res["results"]) == 20
+        assert res["results"][0]["continuation"] == "continuation text"
+        assert res["results"][0]["ranked_suggestions"] == ["test"]
+
+

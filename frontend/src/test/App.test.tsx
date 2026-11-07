@@ -34,13 +34,13 @@ describe('Frontend Component Tests', () => {
       device: 'cpu',
       modes: {
         general: {
-          name: 'DistilGPT-2',
-          model_id: 'distilbert/distilgpt2',
-          architecture: 'Causal Transformer',
-          parameters: 81912576,
-          vocab_size: 50257,
+          name: 'Gemma 4 26B-A4B-IT (General English)',
+          model_id: '@cf/google/gemma-4-26b-a4b-it',
+          architecture: 'Mixture-of-Experts',
+          parameters: 26000000000,
+          vocab_size: 256000,
           license: 'Apache 2.0',
-          context_length: 1024,
+          context_length: 256000,
           domain: 'General English',
         },
         technical: {
@@ -70,8 +70,9 @@ describe('Frontend Component Tests', () => {
       />
     );
 
-    const matches = screen.getAllByText(/DistilGPT-2 Autoregressive Transformer/i);
+    const matches = screen.getAllByText(/Gemma 4 26B-A4B-IT/i);
     expect(matches.length).toBeGreaterThanOrEqual(1);
-    expect(screen.getByText(/PyTorch Bidirectional LSTM/i)).toBeInTheDocument();
+    const techMatches = screen.getAllByText(/PyTorch Bidirectional LSTM/i);
+    expect(techMatches.length).toBeGreaterThanOrEqual(1);
   });
 });
