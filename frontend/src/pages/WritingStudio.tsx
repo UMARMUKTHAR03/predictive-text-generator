@@ -180,7 +180,7 @@ export const WritingStudio: React.FC<WritingStudioProps> = ({ activeMode, setAct
               <span className="font-semibold uppercase tracking-wider text-slate-300 flex items-center gap-2">
                 Writing Canvas
                 <span className="px-2 py-0.5 rounded-full bg-slate-800 text-emerald-400 border border-slate-700 text-[10px] font-mono">
-                  {activeMode === 'general' ? 'DistilGPT-2 82M' : 'BiLSTM 3.2M'}
+                  {prediction?.model_name || (activeMode === 'general' ? 'General English Engine' : 'BiLSTM 3.2M')}
                 </span>
               </span>
               <div className="flex items-center gap-2">
@@ -241,7 +241,7 @@ export const WritingStudio: React.FC<WritingStudioProps> = ({ activeMode, setAct
                 {isLoadingPred ? (
                   <div className="text-xs text-slate-500 animate-pulse flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-                    Extracting next-word candidates from {activeMode === 'general' ? 'DistilGPT-2' : 'PyTorch BiLSTM'}...
+                    Forecasting next-word candidates for {activeMode === 'general' ? 'General English' : 'Technical'} mode...
                   </div>
                 ) : prediction && prediction.candidates.length > 0 ? (
                   prediction.candidates.map((cand) => (
@@ -252,7 +252,7 @@ export const WritingStudio: React.FC<WritingStudioProps> = ({ activeMode, setAct
                     >
                       <span className="font-medium text-emerald-400">{cand.word}</span>
                       <span className="text-xs font-mono text-slate-400 group-hover:text-emerald-300">
-                        {(cand.probability * 100).toFixed(1)}%
+                        {cand.probability > 0 ? `${(cand.probability * 100).toFixed(1)}%` : `#${cand.rank}`}
                       </span>
                     </button>
                   ))

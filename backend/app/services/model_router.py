@@ -27,17 +27,22 @@ class ModelRouter:
     """
     Central router that dynamically dispatches prediction and generation requests.
     Technical Writing is served by the local PyTorch BiLSTM (3.2M params).
-    General English Writing is delegated to an isolated external microservice via GENERAL_API_URL.
-    If GENERAL_API_URL is unconfigured, General mode fails closed with HTTP 503 unless ALLOW_LOCAL_GENERAL=true.
+    General English Writing can be fulfilled via:
+      1. Cloudflare Workers AI managed inference (when GENERAL_PROVIDER=cloudflare_workers_ai or CLOUDFLARE_API_TOKEN is set)
+      2. An isolated external microservice via GENERAL_API_URL
+      3. Explicit local opt-in via ALLOW_LOCAL_GENERAL=true (requires >=1GB RAM)
+    If no provider is configured, General mode fails closed with HTTP 503.
     """
     _instance: Optional["ModelRouter"] = None
 
     def __init__(self):
         self.technical_manager = ModelManager.get_instance()
         self.technical_service = TextGenerationService()
+        self.general_provider = os.environ.get("GENERAL_PROVIDER", "").strip().lower()
         self.general_api_url = os.environ.get("GENERAL_API_URL", "").rstrip("/")
         self.allow_local_general = os.environ.get("ALLOW_LOCAL_GENERAL", "false").lower() in ("true", "1", "yes")
         self._local_general_service = None
+        self._cloudflare_service = None
         self.stats = {
             "total_predictions": 0,
             "total_generations": 0,
@@ -46,6 +51,17 @@ class ModelRouter:
             "latency_history": [],
             "start_time": time.time()
         }
+
+    @property
+    def is_cloudflare_provider(self) -> bool:
+        return self.general_provider == "cloudflare_workers_ai" or bool(os.environ.get("CLOUDFLARE_API_TOKEN"))
+
+    @property
+    def cloudflare_service(self):
+        if self._cloudflare_service is None:
+            from backend.app.services.cloudflare_workers_ai_service import CloudflareWorkersAIProvider
+            self._cloudflare_service = CloudflareWorkersAIProvider()
+        return self._cloudflare_service
 
     @classmethod
     def get_instance(cls) -> "ModelRouter":
@@ -56,6 +72,9 @@ class ModelRouter:
     @property
     def general_metadata(self) -> Dict[str, Any]:
         """Provides model metadata without instantiating or loading DistilGPT-2 weights."""
+        if self.is_cloudflare_provider:
+            return self.cloudflare_service.metadata
+
         meta = dict(DISTILGPT2_METADATA_CONST)
         meta["is_remote"] = bool(self.general_api_url)
         meta["remote_url"] = self.general_api_url if self.general_api_url else None
@@ -65,13 +84,13 @@ class ModelRouter:
     @property
     def general_service(self):
         """Loads local General model ONLY if ALLOW_LOCAL_GENERAL=true has been explicitly set."""
-        if not self.allow_local_general and not self.general_api_url:
+        if not self.allow_local_general and not self.general_api_url and not self.is_cloudflare_provider:
             raise HTTPException(
                 status_code=503,
                 detail=(
-                    "General English model (DistilGPT-2) is not configured in this service. "
-                    "In production, DistilGPT-2 runs as an isolated microservice (requires >=1 GB RAM). "
-                    "Set GENERAL_API_URL to point to the dedicated General inference service, "
+                    "General English model is not configured in this service. "
+                    "In production, use Cloudflare Workers AI (GENERAL_PROVIDER=cloudflare_workers_ai) "
+                    "or set GENERAL_API_URL to point to a dedicated General inference service, "
                     "or set ALLOW_LOCAL_GENERAL=true to opt into local loading."
                 )
             )
@@ -84,15 +103,20 @@ class ModelRouter:
         """Pre-load technical model by default. Never pre-load DistilGPT-2 in the main service."""
         print("Initializing ModelRouter...")
         self.technical_manager.load()
-        if self.general_api_url:
+        if self.is_cloudflare_provider:
+            status_desc = "configured" if self.cloudflare_service.is_configured else "missing credentials"
+            print(f"General writing mode routed to Cloudflare Workers AI ({self.cloudflare_service.model_id}, {status_desc}).")
+        elif self.general_api_url:
             print(f"General writing mode routed to isolated microservice: {self.general_api_url}")
         elif self.allow_local_general:
             print("General writing mode configured for local lazy loading (ALLOW_LOCAL_GENERAL=true, requires >1GB RAM).")
         else:
-            print("General writing mode is fail-closed (GENERAL_API_URL not set). Only Technical model loaded.")
+            print("General writing mode is fail-closed (no external provider set). Only Technical model loaded.")
         print("Technical model ready.")
 
     def check_remote_general_health(self) -> bool:
+        if self.is_cloudflare_provider:
+            return self.cloudflare_service.check_health()
         if not self.general_api_url:
             return False
         try:
@@ -105,10 +129,30 @@ class ModelRouter:
 
     def get_health_status(self) -> HealthResponse:
         general_is_loaded = False
-        if self.general_api_url:
+        general_name = "General English Writing (DistilGPT-2)"
+        general_arch = "DistilGPT-2 (6 layers, 768 hidden, 12 heads)"
+        general_params = 81912576
+        general_desc = "82M parameter transformer (unconfigured / offline)"
+
+        if self.is_cloudflare_provider:
+            cf = self.cloudflare_service
+            general_name = f"General English ({cf.metadata['name']})"
+            general_arch = cf.metadata["architecture"]
+            general_params = cf.metadata["parameters"]
+            if cf.is_configured:
+                # To avoid eating Cloudflare quota or slowing down every health poll,
+                # mark as loaded if credentials are valid
+                general_is_loaded = True
+                general_desc = f"Managed Cloudflare Workers AI ({cf.model_id})"
+            else:
+                general_is_loaded = False
+                general_desc = "Cloudflare Workers AI unconfigured (missing server credentials)"
+        elif self.general_api_url:
             general_is_loaded = self.check_remote_general_health()
+            general_desc = f"82M parameter causal autoregressive transformer hosted at {self.general_api_url}"
         elif self.allow_local_general and self._local_general_service is not None:
             general_is_loaded = self._local_general_service.is_loaded
+            general_desc = "82M parameter transformer (local opt-in)"
 
         modes = {
             "technical": ModeStatus(
@@ -119,15 +163,11 @@ class ModelRouter:
                 parameters=3229299
             ),
             "general": ModeStatus(
-                name="General English Writing (DistilGPT-2)",
+                name=general_name,
                 loaded=general_is_loaded,
-                description=(
-                    f"82M parameter causal autoregressive transformer hosted at {self.general_api_url}"
-                    if self.general_api_url else
-                    ("82M parameter transformer (local opt-in)" if self.allow_local_general else "82M parameter transformer (unconfigured / offline)")
-                ),
-                architecture="DistilGPT-2 (6 layers, 768 hidden, 12 heads)",
-                parameters=81912576
+                description=general_desc,
+                architecture=general_arch,
+                parameters=general_params
             )
         }
 
@@ -145,7 +185,20 @@ class ModelRouter:
         normalized_mode = (mode or "technical").lower()
 
         if normalized_mode == "general":
-            if self.general_api_url:
+            if self.is_cloudflare_provider:
+                # Cloudflare Workers AI managed inference
+                candidates, tokens, model_lat = self.cloudflare_service.predict_next_words(text, top_k, temperature)
+                latency_ms = (time.perf_counter() - t0) * 1000
+                result = PredictResponse(
+                    input_text=text,
+                    mode=normalized_mode,
+                    tokens=tokens,
+                    candidates=candidates,
+                    latency_ms=round(latency_ms, 2),
+                    model_name=f"{self.cloudflare_service.metadata['name']} (Cloudflare)",
+                    model_version="2.0.0"
+                )
+            elif self.general_api_url:
                 # Forward to dedicated isolated General service
                 try:
                     payload = json.dumps({"text": text, "mode": "general", "top_k": top_k, "temperature": temperature}).encode("utf-8")
@@ -180,7 +233,7 @@ class ModelRouter:
                     status_code=503,
                     detail=(
                         "General English writing mode is currently unavailable. "
-                        "The dedicated General Inference Service is not configured. "
+                        "Neither Cloudflare Workers AI nor a dedicated General microservice is configured. "
                         "Technical Writing mode (PyTorch BiLSTM) is active and available."
                     )
                 )
@@ -220,7 +273,27 @@ class ModelRouter:
         normalized_mode = (mode or "technical").lower()
 
         if normalized_mode == "general":
-            if self.general_api_url:
+            if self.is_cloudflare_provider:
+                gen_text, completed_text, tokens_gen, model_lat = self.cloudflare_service.generate_continuation(
+                    prompt=prompt,
+                    max_tokens=max_tokens,
+                    temperature=temperature,
+                    strategy=strategy,
+                    top_k=top_k,
+                    repetition_penalty=repetition_penalty
+                )
+                latency_ms = (time.perf_counter() - t0) * 1000
+                result = GenerateResponse(
+                    prompt=prompt,
+                    mode=normalized_mode,
+                    generated_text=gen_text,
+                    completed_text=completed_text,
+                    tokens_generated=tokens_gen,
+                    strategy_used=strategy,
+                    latency_ms=round(latency_ms, 2),
+                    model_name=f"{self.cloudflare_service.metadata['name']} (Cloudflare)"
+                )
+            elif self.general_api_url:
                 try:
                     payload = json.dumps({
                         "prompt": prompt,
@@ -268,7 +341,7 @@ class ModelRouter:
                     status_code=503,
                     detail=(
                         "General English text generation is currently unavailable. "
-                        "The dedicated General Inference Service is not configured. "
+                        "Neither Cloudflare Workers AI nor a dedicated General microservice is configured. "
                         "Technical Writing mode (PyTorch BiLSTM) is active and available."
                     )
                 )

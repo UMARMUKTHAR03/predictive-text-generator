@@ -60,7 +60,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 }`}
             >
               <Globe2 className="w-3.5 h-3.5" />
-              General English (DistilGPT-2)
+              General English Mode
             </button>
             <button
               onClick={() => setActiveMode('technical')}

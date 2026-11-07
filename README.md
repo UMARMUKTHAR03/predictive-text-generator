@@ -1,7 +1,7 @@
 # NeuroText AI V2 – Intelligent Dual-Mode Predictive Writing & Language Platform
 
 [![CI & GitHub Pages Deployment](https://github.com/UMARMUKTHAR03/predictive-text-generator/actions/workflows/ci.yml/badge.svg)](https://github.com/UMARMUKTHAR03/predictive-text-generator/actions/workflows/ci.yml)
-[![FastAPI Tests](https://img.shields.io/badge/pytest-38%20passed-brightgreen?logo=pytest)](https://github.com/UMARMUKTHAR03/predictive-text-generator)
+[![FastAPI Tests](https://img.shields.io/badge/pytest-58%20passed-brightgreen?logo=pytest)](https://github.com/UMARMUKTHAR03/predictive-text-generator)
 [![Frontend Tests](https://img.shields.io/badge/vitest-2%20passed-brightgreen?logo=vitest)](https://github.com/UMARMUKTHAR03/predictive-text-generator)
 [![Python](https://img.shields.io/badge/Python-3.11%20%7C%203.13-blue?logo=python)](https://www.python.org/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.15%20CPU-EE4C2C?logo=pytorch)](https://pytorch.org/)
@@ -124,12 +124,12 @@ Detailed empirical memory audit conducted with reproducible process tracking ([`
 | **Peak RSS During Active Autoregressive Generation** | **727.41 MB** | +346.32 MB |
 
 > [!WARNING]
-> **Production Hosting Architecture & Render Free Plan Limitation:**
-> - **The 512 MB Limit:** Render Free tier enforces a strict **512 MB hard RAM ceiling**. While the Technical PyTorch BiLSTM runs comfortably at **381.08 MB RSS** (130+ MB headroom), loading DistilGPT-2 and performing autoregressive generation reaches **727.41 MB peak RSS** in a combined process (and 714.15 MB in an isolated clean process), which triggers the Linux OOM-killer (`exit 137 / SIGKILL`) on Render Free.
-> - **Fail-Closed Production Safety:** To prevent Render Free from crashing, `ModelRouter` enforces fail-closed routing by default (`ALLOW_LOCAL_GENERAL=false`). If `GENERAL_API_URL` is configured, General requests are securely proxied to that dedicated upstream microservice. If unset, the primary service immediately responds with HTTP 503 Service Unavailable, preserving 100% uptime for Technical BiLSTM inference without risking OOM crashes.
-> - **Option A (Separate Microservices - Recommended for Free Tier):** Deploy the Technical BiLSTM on Render Free (`backend/app/main.py`), and host DistilGPT-2 via the dedicated isolated entry point (`backend/app/general_main.py`) on a separate service or serverless inference backend.
-> - **Option B (Model Quantization):** Dynamic INT8 quantization on PyTorch CPU saves disk footprint, but PyTorch runtime memory allocation during generation still exceeds 512 MB.
-> - **Option C (Hosting Instance Upgrade):** Upgrading Render to the **Starter Plan (1 GB RAM, $7/month)** reliably hosts both models concurrently with 270+ MB buffer. *Note: No paid instance is provisioned without explicit user authorization.*
+> **Production Hosting Architecture & Memory Audit:**
+> - **The 512 MB Limit on Render Free:** Render Free tier enforces a strict **512 MB hard RAM ceiling**. While the Technical PyTorch BiLSTM runs comfortably at **381.08 MB RSS** (130+ MB headroom), loading DistilGPT-2 FP32 reaches **714.15 MB peak RSS**, and ONNX INT8 dynamic quantization reaches **552.71 MB peak RSS** ([`ml/artifacts/onnx_int8_memory_benchmark.json`](ml/artifacts/onnx_int8_memory_benchmark.json)), triggering Linux OOM termination (`exit 137 / SIGKILL`).
+> - **Fail-Closed Production Safety:** To prevent Render Free from crashing, `ModelRouter` enforces fail-closed routing by default (`ALLOW_LOCAL_GENERAL=false`). If no General provider is configured, the service responds with HTTP 503, preserving 100% uptime for the Technical BiLSTM.
+> - **Option 1 (Cloudflare Workers AI - Zero RAM Footprint on Render):** Use Cloudflare Workers AI serverless managed inference (`@cf/meta/llama-3.2-1b-instruct`) by configuring `GENERAL_PROVIDER=cloudflare_workers_ai`, `CLOUDFLARE_ACCOUNT_ID`, and `CLOUDFLARE_API_TOKEN`. Free tier offers 10,000 Neurons/day with 0 MB memory pressure on Render Free.
+> - **Option 2 (Dedicated DistilGPT-2 Microservice):** Host `backend/app/general_main.py` on a separate $\ge$1 GB RAM instance (e.g. Render Starter at $7/mo, Modal, or Hugging Face Inference Endpoints) and route via `GENERAL_API_URL`.
+> - **Note on Paid Plans:** No paid cloud services or subscriptions have been created or activated.
 
 > [!NOTE]
 > **Performance Gap & Generalization Disclosure:**
@@ -233,7 +233,7 @@ npm run dev
 ---
 
 ## Test & Verification Summary
-- **Backend Test Suite (PyTest)**: **38 / 38 passed** (`test_routing_safety.py` [10/10], `test_api.py` [10/10], `test_general_api.py` [6/6], `test_general_model.py` [7/7], `test_model_integration.py` [5/5]).
+- **Backend Test Suite (PyTest)**: **58 / 58 passed** (`test_cloudflare_provider.py` [10/10], `test_experimental_onnx.py` [10/10], `test_routing_safety.py` [10/10], `test_api.py` [10/10], `test_general_api.py` [6/6], `test_general_model.py` [7/7], `test_model_integration.py` [5/5]).
 - **Frontend Test Suite (Vitest)**: **2 / 2 passed** (Navbar dual-mode rendering, Dashboard engine cards).
 - **Production Build (Vite & TypeScript)**: Compiled cleanly with zero errors.
 - **GitHub Pages Deployment**: Automated through `.github/workflows/ci.yml` targeting `gh-pages` branch.

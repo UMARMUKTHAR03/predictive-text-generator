@@ -1,0 +1,276 @@
+{
+  "model_id": "@cf/meta/llama-3.2-1b-instruct",
+  "provider": "Cloudflare Workers AI",
+  "live_credentials_present": false,
+  "prompt_count": 20,
+  "categories_covered": [
+    "Email",
+    "Everyday",
+    "Educational",
+    "Article",
+    "Short Story"
+  ],
+  "results": [
+    {
+      "category": "Email",
+      "prompt": "I am writing this email to follow up on our discussion regarding",
+      "continuation": "[Simulated continuation for 'I am writing this email to follow up on our discussion regarding']",
+      "top_suggestions": [
+        "first",
+        "second",
+        "third",
+        "fourth",
+        "fifth"
+      ],
+      "latency_ms": 120.0
+    },
+    {
+      "category": "Email",
+      "prompt": "Please find attached the updated project roadmap and",
+      "continuation": "[Simulated continuation for 'Please find attached the updated project roadmap and']",
+      "top_suggestions": [
+        "first",
+        "second",
+        "third",
+        "fourth",
+        "fifth"
+      ],
+      "latency_ms": 120.0
+    },
+    {
+      "category": "Email",
+      "prompt": "Thank you for your prompt reply regarding the contract",
+      "continuation": "[Simulated continuation for 'Thank you for your prompt reply regarding the contract']",
+      "top_suggestions": [
+        "first",
+        "second",
+        "third",
+        "fourth",
+        "fifth"
+      ],
+      "latency_ms": 120.0
+    },
+    {
+      "category": "Email",
+      "prompt": "Could you please clarify the scheduled timeline for the",
+      "continuation": "[Simulated continuation for 'Could you please clarify the scheduled timeline for the']",
+      "top_suggestions": [
+        "first",
+        "second",
+        "third",
+        "fourth",
+        "fifth"
+      ],
+      "latency_ms": 120.0
+    },
+    {
+      "category": "Everyday",
+      "prompt": "The weather today in the city is surprisingly",
+      "continuation": "[Simulated continuation for 'The weather today in the city is surprisingly']",
+      "top_suggestions": [
+        "first",
+        "second",
+        "third",
+        "fourth",
+        "fifth"
+      ],
+      "latency_ms": 120.0
+    },
+    {
+      "category": "Everyday",
+      "prompt": "We are planning to visit our grandparents this coming",
+      "continuation": "[Simulated continuation for 'We are planning to visit our grandparents this coming']",
+      "top_suggestions": [
+        "first",
+        "second",
+        "third",
+        "fourth",
+        "fifth"
+      ],
+      "latency_ms": 120.0
+    },
+    {
+      "category": "Everyday",
+      "prompt": "After finishing work today, I decided to go for a long walk in",
+      "continuation": "[Simulated continuation for 'After finishing work today, I decided to go for a long walk in']",
+      "top_suggestions": [
+        "first",
+        "second",
+        "third",
+        "fourth",
+        "fifth"
+      ],
+      "latency_ms": 120.0
+    },
+    {
+      "category": "Everyday",
+      "prompt": "Can you recommend a good place to have dinner near",
+      "continuation": "[Simulated continuation for 'Can you recommend a good place to have dinner near']",
+      "top_suggestions": [
+        "first",
+        "second",
+        "third",
+        "fourth",
+        "fifth"
+      ],
+      "latency_ms": 120.0
+    },
+    {
+      "category": "Educational",
+      "prompt": "Photosynthesis is the fundamental biological process through which plants",
+      "continuation": "[Simulated continuation for 'Photosynthesis is the fundamental biological process through which plants']",
+      "top_suggestions": [
+        "first",
+        "second",
+        "third",
+        "fourth",
+        "fifth"
+      ],
+      "latency_ms": 120.0
+    },
+    {
+      "category": "Educational",
+      "prompt": "The industrial revolution fundamentally transformed European society by",
+      "continuation": "[Simulated continuation for 'The industrial revolution fundamentally transformed European society by']",
+      "top_suggestions": [
+        "first",
+        "second",
+        "third",
+        "fourth",
+        "fifth"
+      ],
+      "latency_ms": 120.0
+    },
+    {
+      "category": "Educational",
+      "prompt": "In calculus, the derivative represents the instantaneous rate of",
+      "continuation": "[Simulated continuation for 'In calculus, the derivative represents the instantaneous rate of']",
+      "top_suggestions": [
+        "first",
+        "second",
+        "third",
+        "fourth",
+        "fifth"
+      ],
+      "latency_ms": 120.0
+    },
+    {
+      "category": "Educational",
+      "prompt": "Gravitational waves are ripples in the fabric of spacetime created by",
+      "continuation": "[Simulated continuation for 'Gravitational waves are ripples in the fabric of spacetime created by']",
+      "top_suggestions": [
+        "first",
+        "second",
+        "third",
+        "fourth",
+        "fifth"
+      ],
+      "latency_ms": 120.0
+    },
+    {
+      "category": "Article",
+      "prompt": "Renewable energy infrastructure has experienced unprecedented growth across",
+      "continuation": "[Simulated continuation for 'Renewable energy infrastructure has experienced unprecedented growth across']",
+      "top_suggestions": [
+        "first",
+        "second",
+        "third",
+        "fourth",
+        "fifth"
+      ],
+      "latency_ms": 120.0
+    },
+    {
+      "category": "Article",
+      "prompt": "Recent advancements in semiconductor manufacturing indicate that global chip",
+      "continuation": "[Simulated continuation for 'Recent advancements in semiconductor manufacturing indicate that global chip']",
+      "top_suggestions": [
+        "first",
+        "second",
+        "third",
+        "fourth",
+        "fifth"
+      ],
+      "latency_ms": 120.0
+    },
+    {
+      "category": "Article",
+      "prompt": "Urban planners are increasingly focusing on sustainable public transit to reduce",
+      "continuation": "[Simulated continuation for 'Urban planners are increasingly focusing on sustainable public transit to reduce']",
+      "top_suggestions": [
+        "first",
+        "second",
+        "third",
+        "fourth",
+        "fifth"
+      ],
+      "latency_ms": 120.0
+    },
+    {
+      "category": "Article",
+      "prompt": "The annual technology symposium highlighted emerging breakthroughs in synthetic",
+      "continuation": "[Simulated continuation for 'The annual technology symposium highlighted emerging breakthroughs in synthetic']",
+      "top_suggestions": [
+        "first",
+        "second",
+        "third",
+        "fourth",
+        "fifth"
+      ],
+      "latency_ms": 120.0
+    },
+    {
+      "category": "Short Story",
+      "prompt": "The ancient lantern flickered softly against the damp stone walls of the",
+      "continuation": "[Simulated continuation for 'The ancient lantern flickered softly against the damp stone walls of the']",
+      "top_suggestions": [
+        "first",
+        "second",
+        "third",
+        "fourth",
+        "fifth"
+      ],
+      "latency_ms": 120.0
+    },
+    {
+      "category": "Short Story",
+      "prompt": "As the spacecraft exited hyperspace, the uncharted planet appeared on the main",
+      "continuation": "[Simulated continuation for 'As the spacecraft exited hyperspace, the uncharted planet appeared on the main']",
+      "top_suggestions": [
+        "first",
+        "second",
+        "third",
+        "fourth",
+        "fifth"
+      ],
+      "latency_ms": 120.0
+    },
+    {
+      "category": "Short Story",
+      "prompt": "Elena opened the weathered wooden chest and found an old brass compass and",
+      "continuation": "[Simulated continuation for 'Elena opened the weathered wooden chest and found an old brass compass and']",
+      "top_suggestions": [
+        "first",
+        "second",
+        "third",
+        "fourth",
+        "fifth"
+      ],
+      "latency_ms": 120.0
+    },
+    {
+      "category": "Short Story",
+      "prompt": "The autumn wind swept through the empty courtyard, scattering golden leaves across",
+      "continuation": "[Simulated continuation for 'The autumn wind swept through the empty courtyard, scattering golden leaves across']",
+      "top_suggestions": [
+        "first",
+        "second",
+        "third",
+        "fourth",
+        "fifth"
+      ],
+      "latency_ms": 120.0
+    }
+  ],
+  "methodology_notice": "This evaluation measures qualitative generation quality and candidate forecasting for Llama 3.2 1B Instruct via Cloudflare Workers AI. It does NOT claim mathematical or architectural equivalence to DistilGPT-2 or the custom BiLSTM. All model benchmarks and parameter counts are reported independently."
+}

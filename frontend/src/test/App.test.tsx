@@ -23,7 +23,7 @@ describe('Frontend Component Tests', () => {
       />
     );
     expect(screen.getByText(/NeuroText/i)).toBeInTheDocument();
-    expect(screen.getByText(/General English \(DistilGPT-2\)/i)).toBeInTheDocument();
+    expect(screen.getByText(/General English Mode/i)).toBeInTheDocument();
     expect(screen.getByText(/Technical Writing \(BiLSTM\)/i)).toBeInTheDocument();
   });
 

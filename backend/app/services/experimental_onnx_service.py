@@ -201,3 +201,4 @@ class ExperimentalONNXGeneralService:
 
         latency_ms = (time.perf_counter() - t0) * 1000
         return generated_text, completed_text, tokens_generated, round(latency_ms, 2)
+
