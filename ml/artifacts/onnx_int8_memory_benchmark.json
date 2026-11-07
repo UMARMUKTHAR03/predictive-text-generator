@@ -1,0 +1,55 @@
+{
+  "service": "NeuroText AI Experimental General Inference Service (DistilGPT-2 ONNX INT8)",
+  "benchmark_environment": "Python 3.13, ONNX Runtime 1.31.1, Optimum 2.1.0, Isolated Process",
+  "model_id": "distilbert/distilgpt2",
+  "revision": "2290a62682d06624634c1f46a6ad5be0f47f38aa",
+  "quantization": "Dynamic INT8 (CPU AVX512-VNNI)",
+  "weights_file_size_mb": 78.62,
+  "fp32_parameter_memory_mb": 312.47,
+  "clean_process_baseline_rss_mb": 18.71,
+  "model_loaded_rss_mb": 540.1,
+  "first_forward_pass_rss_mb": 545.51,
+  "repeated_50_predictions_rss_mb": {
+    "at_10": 546.69,
+    "at_25": 546.7,
+    "at_50": 546.71,
+    "memory_stable": true
+  },
+  "ten_token_gen_rss_mb": 551.45,
+  "fifteen_token_gen_rss_mb": 552.71,
+  "peak_rss_mb": 552.71,
+  "cold_load_time_sec": 6.87,
+  "prediction_latency_ms": {
+    "median": 8.85,
+    "mean": 8.93,
+    "p95": 10.48
+  },
+  "generation_latency_ms": {
+    "ten_tokens": 213.2,
+    "fifteen_tokens": 107.45
+  },
+  "sample_outputs": {
+    "prompt_1": "The future of artificial intelligence",
+    "continuation_1": ".\n\u201cWe are not a new technology",
+    "prompt_2": "I am writing this email to",
+    "continuation_2": "the President of Israel, and I hope you appreciate it.\nThe letter"
+  },
+  "pytorch_vs_onnx_comparison": {
+    "pytorch_fp32_peak_rss_mb": 714.15,
+    "onnx_int8_peak_rss_mb": 552.71,
+    "rss_reduction_mb": 161.44,
+    "rss_reduction_percent": 22.61,
+    "disk_footprint_reduction_percent": 74.84
+  },
+  "strict_acceptance_criteria_audit": {
+    "target_peak_rss_mb": 450.0,
+    "measured_peak_rss_mb": 552.71,
+    "passes_450mb_criterion": false,
+    "headroom_against_450mb_mb": -102.71,
+    "render_free_512mb_limit": 512.0,
+    "passes_render_free_512mb": false,
+    "headroom_against_render_free_512mb_mb": -40.71,
+    "repeated_predictions_stable": true,
+    "assessment": "ONNX INT8 quantization compresses model disk footprint from 312.47 MB to 78.62 MB (a 73.6% reduction) and reduces process peak RSS from 714.15 MB (PyTorch FP32) down to 552.71 MB (a 161.44 MB reduction). However, measured peak RSS of 552.71 MB EXCEEDS the strict 450.0 MB target (headroom: -102.71 MB) and also exceeds Render Free's 512 MB ceiling (deficit: 40.71 MB). This excess is driven by the Python runtime baseline + Optimum/ONNX Runtime native libraries + C++ runtime allocations (~390-410 MB baseline before model state), plus the quantized model weights and KV-cache tensors during autoregressive generation. Therefore, while INT8 provides significant memory savings, running General DistilGPT-2 inference safely still requires an instance with >=1 GB RAM."
+  }
+}

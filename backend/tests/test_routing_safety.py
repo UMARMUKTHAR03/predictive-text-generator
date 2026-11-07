@@ -206,3 +206,4 @@ def test_upstream_errors_do_not_fall_back_to_technical(client):
         # Must NOT count as a successful prediction in analytics
         assert router.stats["total_predictions"] == 0
         assert router.stats["predictions_by_mode"]["general"] == 0
+
