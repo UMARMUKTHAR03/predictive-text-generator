@@ -1,0 +1,27 @@
+{
+  "service": "NeuroText AI Isolated General Inference Microservice (DistilGPT-2)",
+  "benchmark_environment": "Python 3.13, PyTorch 2.15 CPU, Isolated Clean Process",
+  "model_id": "distilbert/distilgpt2",
+  "revision": "2290a62682d06624634c1f46a6ad5be0f47f38aa",
+  "parameters": 81912576,
+  "parameter_memory_fp32_mb": 312.47,
+  "baseline_rss_mb": 197.01,
+  "model_loaded_rss_mb": 392.02,
+  "first_forward_pass_rss_mb": 704.84,
+  "prediction_rss_mb": 705.76,
+  "gen10_rss_mb": 711.69,
+  "peak_rss_mb": 714.15,
+  "cold_load_time_sec": 6.10,
+  "prediction_latency_ms": {
+    "mean": 48.00,
+    "median": 40.94,
+    "p95": 93.55
+  },
+  "render_free_512mb_safety_analysis": {
+    "render_ram_limit_mb": 512,
+    "measured_peak_mb": 714.15,
+    "headroom_mb": -202.15,
+    "is_safe_for_render_free": false,
+    "assessment": "Even in an isolated clean Python process with zero BiLSTM imports or dependencies, DistilGPT-2 reaches 704.84 MB upon first forward pass and peaks at 714.15 MB during 15-token generation. This produces a -202.15 MB deficit against Render Free's 512 MB ceiling, causing immediate OOM termination (exit 137 / SIGKILL). Safe hosting requires an instance with >=1 GB RAM (e.g. Render Starter $7/mo) or a serverless inference backend."
+  }
+}

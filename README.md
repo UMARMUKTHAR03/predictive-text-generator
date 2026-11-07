@@ -1,7 +1,7 @@
 # NeuroText AI V2 – Intelligent Dual-Mode Predictive Writing & Language Platform
 
 [![CI & GitHub Pages Deployment](https://github.com/UMARMUKTHAR03/predictive-text-generator/actions/workflows/ci.yml/badge.svg)](https://github.com/UMARMUKTHAR03/predictive-text-generator/actions/workflows/ci.yml)
-[![FastAPI Tests](https://img.shields.io/badge/pytest-22%20passed-brightgreen?logo=pytest)](https://github.com/UMARMUKTHAR03/predictive-text-generator)
+[![FastAPI Tests](https://img.shields.io/badge/pytest-28%20passed-brightgreen?logo=pytest)](https://github.com/UMARMUKTHAR03/predictive-text-generator)
 [![Frontend Tests](https://img.shields.io/badge/vitest-2%20passed-brightgreen?logo=vitest)](https://github.com/UMARMUKTHAR03/predictive-text-generator)
 [![Python](https://img.shields.io/badge/Python-3.11%20%7C%203.13-blue?logo=python)](https://www.python.org/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.15%20CPU-EE4C2C?logo=pytorch)](https://pytorch.org/)
@@ -232,7 +232,7 @@ npm run dev
 ---
 
 ## Test & Verification Summary
-- **Backend Test Suite (PyTest)**: **22 / 22 passed** (`test_api.py` [10/10], `test_general_model.py` [7/7], `test_model_integration.py` [5/5]).
+- **Backend Test Suite (PyTest)**: **28 / 28 passed** (`test_api.py` [10/10], `test_general_api.py` [6/6], `test_general_model.py` [7/7], `test_model_integration.py` [5/5]).
 - **Frontend Test Suite (Vitest)**: **2 / 2 passed** (Navbar dual-mode rendering, Dashboard engine cards).
 - **Production Build (Vite & TypeScript)**: Compiled cleanly with zero errors.
 - **GitHub Pages Deployment**: Automated through `.github/workflows/ci.yml` targeting `gh-pages` branch.

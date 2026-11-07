@@ -97,20 +97,20 @@ export const Navbar: React.FC<NavbarProps> = ({
             })}
           </nav>
 
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-800/80 border border-slate-700/60 text-xs">
-              <span className="relative flex h-2 w-2">
-                {health?.status === 'healthy' ? (
-                  <>
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                  </>
-                ) : (
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
-                )}
+          <div className="flex items-center gap-2">
+            {/* Technical Service Pill */}
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-800/80 border border-slate-700/60 text-xs">
+              <span className={`inline-flex rounded-full h-2 w-2 ${health?.technical_model_loaded ? 'bg-emerald-500' : 'bg-rose-500'}`}></span>
+              <span className="text-slate-300 font-mono text-[11px] hidden sm:inline">
+                Tech: {health?.technical_model_loaded ? 'Online' : 'Offline'}
               </span>
-              <span className="text-slate-300 font-mono hidden sm:inline">
-                {health?.status === 'healthy' ? 'Engine Online' : 'Connecting...'}
+            </div>
+
+            {/* General Service Pill */}
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-800/80 border border-slate-700/60 text-xs">
+              <span className={`inline-flex rounded-full h-2 w-2 ${health?.general_model_loaded ? 'bg-emerald-500' : 'bg-amber-500'}`}></span>
+              <span className="text-slate-300 font-mono text-[11px] hidden sm:inline">
+                General: {health?.general_model_loaded ? 'Online' : 'Offline / Standby'}
               </span>
             </div>
           </div>

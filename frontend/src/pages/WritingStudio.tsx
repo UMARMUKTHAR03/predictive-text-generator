@@ -145,7 +145,27 @@ export const WritingStudio: React.FC<WritingStudioProps> = ({ activeMode, setAct
         </div>
       </div>
 
-      {error && (
+      {activeMode === 'general' && error && (
+        <div className="mb-6 p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-sm flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <Info className="w-5 h-5 shrink-0 text-rose-400" />
+            <div>
+              <p className="font-semibold text-rose-200">General English Service Offline</p>
+              <p className="text-xs text-rose-300/80 mt-0.5">
+                The isolated General Inference Service (DistilGPT-2) requires &ge;1 GB RAM and is hosted separately from the Technical service. Technical Writing (BiLSTM) remains 100% operational.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => handleModeChange('technical')}
+            className="px-3 py-1.5 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-200 text-xs font-semibold shrink-0 transition"
+          >
+            Switch to Technical Mode
+          </button>
+        </div>
+      )}
+
+      {error && !(activeMode === 'general' && error) && (
         <div className="mb-6 p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-sm flex items-center gap-3">
           <Info className="w-5 h-5 shrink-0" />
           <span>{error}. Check API connection at {ApiClient.getBaseUrl()}.</span>
