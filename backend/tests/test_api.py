@@ -5,9 +5,13 @@ from backend.app.services.model_router import ModelRouter
 
 @pytest.fixture(scope="session")
 def client():
-    ModelRouter.get_instance().initialize()
+    # In test_api.py, opt in to local general mode to test full dual-mode integration
+    router = ModelRouter.get_instance()
+    router.allow_local_general = True
+    router.initialize()
     with TestClient(app) as test_client:
         yield test_client
+    router.allow_local_general = False
 
 def test_root_endpoint_v2(client):
     response = client.get("/")

@@ -1,10 +1,10 @@
 import React from 'react';
-import { 
-  Sparkles, 
-  Cpu, 
-  BarChart3, 
-  Settings, 
-  Activity, 
+import {
+  Sparkles,
+  Cpu,
+  BarChart3,
+  Settings,
+  Activity,
   Zap,
   Globe2,
   TerminalSquare
@@ -19,9 +19,9 @@ interface NavbarProps {
   setActiveMode: (mode: WritingMode) => void;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ 
-  activeTab, 
-  setActiveTab, 
+export const Navbar: React.FC<NavbarProps> = ({
+  activeTab,
+  setActiveTab,
   health,
   activeMode,
   setActiveMode
@@ -54,22 +54,20 @@ export const Navbar: React.FC<NavbarProps> = ({
           <div className="hidden lg:flex items-center p-1 rounded-xl bg-slate-950 border border-slate-800">
             <button
               onClick={() => setActiveMode('general')}
-              className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium transition ${
-                activeMode === 'general'
-                  ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
-                  : 'text-slate-400 hover:text-white'
-              }`}
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium transition ${activeMode === 'general'
+                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
+                : 'text-slate-400 hover:text-white'
+                }`}
             >
               <Globe2 className="w-3.5 h-3.5" />
               General English (DistilGPT-2)
             </button>
             <button
               onClick={() => setActiveMode('technical')}
-              className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium transition ${
-                activeMode === 'technical'
-                  ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
-                  : 'text-slate-400 hover:text-white'
-              }`}
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium transition ${activeMode === 'technical'
+                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
+                : 'text-slate-400 hover:text-white'
+                }`}
             >
               <TerminalSquare className="w-3.5 h-3.5" />
               Technical Writing (BiLSTM)
@@ -84,11 +82,10 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <button
                   key={item.id}
                   onClick={() => setActiveTab(item.id)}
-                  className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-medium transition-all ${
-                    isActive
-                      ? 'bg-slate-800 text-emerald-400 border border-emerald-500/30 shadow-sm'
-                      : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
-                  }`}
+                  className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-medium transition-all ${isActive
+                    ? 'bg-slate-800 text-emerald-400 border border-emerald-500/30 shadow-sm'
+                    : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
+                    }`}
                 >
                   <Icon className={`w-4 h-4 ${isActive ? 'text-emerald-400' : 'text-slate-400'}`} />
                   {item.label}

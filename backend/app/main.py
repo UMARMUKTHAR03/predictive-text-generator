@@ -68,6 +68,8 @@ async def predict_next_token(request: PredictRequest):
             top_k=request.top_k,
             temperature=request.temperature
         )
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Prediction error: {str(e)}")
 
@@ -85,6 +87,8 @@ async def generate_text(request: GenerateRequest):
             top_k=request.top_k,
             repetition_penalty=request.repetition_penalty
         )
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Generation error: {str(e)}")
 
@@ -96,7 +100,7 @@ async def get_model_info():
         version="2.0.0",
         device=str(router.technical_manager.device),
         modes={
-            "general": router.general_service.metadata,
+            "general": router.general_metadata,
             "technical": {
                 "name": "Technical Writing (PyTorch BiLSTM)",
                 "architecture": tech_config.get("architecture", "Bidirectional LSTM"),

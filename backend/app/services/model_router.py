@@ -3,6 +3,7 @@ import time
 import urllib.request
 import json
 from typing import Dict, Any, Tuple, List, Optional
+from fastapi import HTTPException
 from backend.app.schemas import (
     PredictResponse, GenerateResponse, PredictionCandidate,
     GenerationToken, HealthResponse, ModeStatus, WritingMode
@@ -10,12 +11,24 @@ from backend.app.schemas import (
 from backend.app.services.model_loader import ModelManager
 from backend.app.services.prediction_service import TextGenerationService
 
+DISTILGPT2_METADATA_CONST = {
+    "name": "DistilGPT-2 (General English)",
+    "model_id": "distilbert/distilgpt2",
+    "revision": "2290a62682d06624634c1f46a6ad5be0f47f38aa",
+    "publisher": "DistilBERT authors / Hugging Face",
+    "architecture": "Causal Autoregressive Transformer (6 layers, 768 hidden, 12 heads)",
+    "parameters": 81912576,
+    "vocab_size": 50257,
+    "context_length": 1024,
+    "license": "Apache 2.0"
+}
+
 class ModelRouter:
     """
     Central router that dynamically dispatches prediction and generation requests.
     Technical Writing is served by the local PyTorch BiLSTM (3.2M params).
-    General English Writing is delegated to an isolated external microservice if GENERAL_API_URL is configured,
-    or directly via GeneralLanguageModelService if running in a high-memory environment (>1GB RAM).
+    General English Writing is delegated to an isolated external microservice via GENERAL_API_URL.
+    If GENERAL_API_URL is unconfigured, General mode fails closed with HTTP 503 unless ALLOW_LOCAL_GENERAL=true.
     """
     _instance: Optional["ModelRouter"] = None
 
@@ -23,6 +36,7 @@ class ModelRouter:
         self.technical_manager = ModelManager.get_instance()
         self.technical_service = TextGenerationService()
         self.general_api_url = os.environ.get("GENERAL_API_URL", "").rstrip("/")
+        self.allow_local_general = os.environ.get("ALLOW_LOCAL_GENERAL", "false").lower() in ("true", "1", "yes")
         self._local_general_service = None
         self.stats = {
             "total_predictions": 0,
@@ -40,8 +54,28 @@ class ModelRouter:
         return cls._instance
 
     @property
+    def general_metadata(self) -> Dict[str, Any]:
+        """Provides model metadata without instantiating or loading DistilGPT-2 weights."""
+        meta = dict(DISTILGPT2_METADATA_CONST)
+        meta["is_remote"] = bool(self.general_api_url)
+        meta["remote_url"] = self.general_api_url if self.general_api_url else None
+        meta["status"] = "remote_configured" if self.general_api_url else ("local_opt_in" if self.allow_local_general else "unconfigured")
+        return meta
+
+    @property
     def general_service(self):
-        if self._local_general_service is None and not self.general_api_url:
+        """Loads local General model ONLY if ALLOW_LOCAL_GENERAL=true has been explicitly set."""
+        if not self.allow_local_general and not self.general_api_url:
+            raise HTTPException(
+                status_code=503,
+                detail=(
+                    "General English model (DistilGPT-2) is not configured in this service. "
+                    "In production, DistilGPT-2 runs as an isolated microservice (requires >=1 GB RAM). "
+                    "Set GENERAL_API_URL to point to the dedicated General inference service, "
+                    "or set ALLOW_LOCAL_GENERAL=true to opt into local loading."
+                )
+            )
+        if self._local_general_service is None and self.allow_local_general:
             from backend.app.services.general_service import GeneralLanguageModelService
             self._local_general_service = GeneralLanguageModelService()
         return self._local_general_service
@@ -52,8 +86,10 @@ class ModelRouter:
         self.technical_manager.load()
         if self.general_api_url:
             print(f"General writing mode routed to isolated microservice: {self.general_api_url}")
+        elif self.allow_local_general:
+            print("General writing mode configured for local lazy loading (ALLOW_LOCAL_GENERAL=true, requires >1GB RAM).")
         else:
-            print("General writing mode configured for local lazy loading (Requires >1GB RAM).")
+            print("General writing mode is fail-closed (GENERAL_API_URL not set). Only Technical model loaded.")
         print("Technical model ready.")
 
     def check_remote_general_health(self) -> bool:
@@ -71,7 +107,7 @@ class ModelRouter:
         general_is_loaded = False
         if self.general_api_url:
             general_is_loaded = self.check_remote_general_health()
-        elif self._local_general_service is not None:
+        elif self.allow_local_general and self._local_general_service is not None:
             general_is_loaded = self._local_general_service.is_loaded
 
         modes = {
@@ -88,7 +124,7 @@ class ModelRouter:
                 description=(
                     f"82M parameter causal autoregressive transformer hosted at {self.general_api_url}"
                     if self.general_api_url else
-                    "82M parameter causal autoregressive transformer for open-domain English"
+                    ("82M parameter transformer (local opt-in)" if self.allow_local_general else "82M parameter transformer (unconfigured / offline)")
                 ),
                 architecture="DistilGPT-2 (6 layers, 768 hidden, 12 heads)",
                 parameters=81912576
@@ -120,37 +156,55 @@ class ModelRouter:
                     )
                     with urllib.request.urlopen(req, timeout=15) as resp:
                         res_data = json.loads(resp.read().decode())
-                        return PredictResponse(**res_data)
+                        result = PredictResponse(**res_data)
                 except Exception as e:
-                    raise RuntimeError(f"Dedicated General Inference Service unavailable at {self.general_api_url}: {str(e)}")
-            else:
-                # Local execution
+                    raise HTTPException(status_code=503, detail=f"Dedicated General Inference Service unavailable at {self.general_api_url}: {str(e)}")
+            elif self.allow_local_general:
+                # Local execution only when explicitly allowed
                 if not self.general_service.is_loaded:
                     self.general_service.load()
                 candidates, tokens, model_lat = self.general_service.predict_next_words(text, top_k, temperature)
-                model_name = "DistilGPT-2 (General English)"
+                latency_ms = (time.perf_counter() - t0) * 1000
+                result = PredictResponse(
+                    input_text=text,
+                    mode=normalized_mode,
+                    tokens=tokens,
+                    candidates=candidates,
+                    latency_ms=round(latency_ms, 2),
+                    model_name="DistilGPT-2 (General English)",
+                    model_version="2.0.0"
+                )
+            else:
+                # Fail closed: never load DistilGPT-2 without config
+                raise HTTPException(
+                    status_code=503,
+                    detail=(
+                        "General English writing mode is currently unavailable. "
+                        "The dedicated General Inference Service is not configured. "
+                        "Technical Writing mode (PyTorch BiLSTM) is active and available."
+                    )
+                )
         else:
             # Technical BiLSTM
             pred_res = self.technical_service.predict_next(text, top_k, temperature)
-            candidates = pred_res.candidates
-            tokens = pred_res.tokens
-            model_lat = pred_res.latency_ms
-            model_name = "PyTorch BiLSTM (Technical Writing)"
+            latency_ms = (time.perf_counter() - t0) * 1000
+            result = PredictResponse(
+                input_text=text,
+                mode=normalized_mode,
+                tokens=pred_res.tokens,
+                candidates=pred_res.candidates,
+                latency_ms=round(latency_ms, 2),
+                model_name="PyTorch BiLSTM (Technical Writing)",
+                model_version="2.0.0"
+            )
 
-        latency_ms = (time.perf_counter() - t0) * 1000
+        # Update analytics only upon success
+        total_lat = (time.perf_counter() - t0) * 1000
         self.stats["total_predictions"] += 1
         self.stats["predictions_by_mode"][normalized_mode] = self.stats["predictions_by_mode"].get(normalized_mode, 0) + 1
-        self.stats["latency_history"].append(latency_ms)
+        self.stats["latency_history"].append(total_lat)
 
-        return PredictResponse(
-            input_text=text,
-            mode=normalized_mode,
-            tokens=tokens,
-            candidates=candidates,
-            latency_ms=round(latency_ms, 2),
-            model_name=model_name,
-            model_version="2.0.0"
-        )
+        return result
 
     def generate(
         self,
@@ -184,10 +238,10 @@ class ModelRouter:
                     )
                     with urllib.request.urlopen(req, timeout=30) as resp:
                         res_data = json.loads(resp.read().decode())
-                        return GenerateResponse(**res_data)
+                        result = GenerateResponse(**res_data)
                 except Exception as e:
-                    raise RuntimeError(f"Dedicated General Inference Service unavailable at {self.general_api_url}: {str(e)}")
-            else:
+                    raise HTTPException(status_code=503, detail=f"Dedicated General Inference Service unavailable at {self.general_api_url}: {str(e)}")
+            elif self.allow_local_general:
                 if not self.general_service.is_loaded:
                     self.general_service.load()
                 gen_text, completed_text, tokens_gen, model_lat = self.general_service.generate_continuation(
@@ -198,7 +252,26 @@ class ModelRouter:
                     top_k=top_k,
                     repetition_penalty=repetition_penalty
                 )
-                model_name = "DistilGPT-2 (General English)"
+                latency_ms = (time.perf_counter() - t0) * 1000
+                result = GenerateResponse(
+                    prompt=prompt,
+                    mode=normalized_mode,
+                    generated_text=gen_text,
+                    completed_text=completed_text,
+                    tokens_generated=tokens_gen,
+                    strategy_used=strategy,
+                    latency_ms=round(latency_ms, 2),
+                    model_name="DistilGPT-2 (General English)"
+                )
+            else:
+                raise HTTPException(
+                    status_code=503,
+                    detail=(
+                        "General English text generation is currently unavailable. "
+                        "The dedicated General Inference Service is not configured. "
+                        "Technical Writing mode (PyTorch BiLSTM) is active and available."
+                    )
+                )
         else:
             gen_res = self.technical_service.generate_completion(
                 prompt=prompt,
@@ -207,27 +280,24 @@ class ModelRouter:
                 strategy=strategy,
                 top_k=top_k
             )
-            gen_text = gen_res.generated_text
-            completed_text = gen_res.completed_text
-            tokens_gen = gen_res.tokens_generated
-            model_lat = gen_res.latency_ms
-            model_name = "PyTorch BiLSTM (Technical Writing)"
+            latency_ms = (time.perf_counter() - t0) * 1000
+            result = GenerateResponse(
+                prompt=prompt,
+                mode=normalized_mode,
+                generated_text=gen_res.generated_text,
+                completed_text=gen_res.completed_text,
+                tokens_generated=gen_res.tokens_generated,
+                strategy_used=strategy,
+                latency_ms=round(latency_ms, 2),
+                model_name="PyTorch BiLSTM (Technical Writing)"
+            )
 
-        latency_ms = (time.perf_counter() - t0) * 1000
+        total_lat = (time.perf_counter() - t0) * 1000
         self.stats["total_generations"] += 1
         self.stats["generations_by_mode"][normalized_mode] = self.stats["generations_by_mode"].get(normalized_mode, 0) + 1
-        self.stats["latency_history"].append(latency_ms)
+        self.stats["latency_history"].append(total_lat)
 
-        return GenerateResponse(
-            prompt=prompt,
-            mode=normalized_mode,
-            generated_text=gen_text,
-            completed_text=completed_text,
-            tokens_generated=tokens_gen,
-            strategy_used=strategy,
-            latency_ms=round(latency_ms, 2),
-            model_name=model_name
-        )
+        return result
 
     def get_analytics(self) -> Dict[str, Any]:
         lats = self.stats["latency_history"]

@@ -132,3 +132,4 @@ async def generate(request: GenerateRequest):
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"General generation error: {str(e)}")
+

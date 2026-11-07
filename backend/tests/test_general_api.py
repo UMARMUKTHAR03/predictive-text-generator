@@ -66,3 +66,4 @@ def test_general_isolated_generate(general_client):
 def test_general_isolated_empty_text_validation(general_client):
     res = general_client.post("/predict", json={"text": "", "mode": "general"})
     assert res.status_code == 400
+
