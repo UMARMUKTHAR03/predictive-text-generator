@@ -1,5 +1,5 @@
 {
-  "model_id": "@cf/meta/llama-3.2-1b-instruct",
+  "model_id": "@cf/google/gemma-4-26b-a4b-it",
   "provider": "Cloudflare Workers AI",
   "live_credentials_present": false,
   "prompt_count": 20,

@@ -60,6 +60,7 @@ export function App() {
           <WritingStudio
             activeMode={activeMode}
             setActiveMode={setActiveMode}
+            modelInfo={modelInfo}
           />
         )}
         {activeTab === 'intelligence' && (

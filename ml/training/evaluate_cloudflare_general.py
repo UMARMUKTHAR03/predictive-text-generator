@@ -86,7 +86,7 @@ def generate_cloudflare_evaluation_report(provider: CloudflareWorkersAIProvider 
         )
     }
 
-    out_file = "ml/artifacts/cloudflare_llama_evaluation.json"
+    out_file = "ml/artifacts/cloudflare_gemma_evaluation.json"
     os.makedirs(os.path.dirname(out_file), exist_ok=True)
     with open(out_file, "w", encoding="utf-8") as f:
         json.dump(report, f, indent=2)
@@ -95,3 +95,4 @@ def generate_cloudflare_evaluation_report(provider: CloudflareWorkersAIProvider 
 
 if __name__ == "__main__":
     generate_cloudflare_evaluation_report()
+

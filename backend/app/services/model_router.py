@@ -139,11 +139,16 @@ class ModelRouter:
             general_name = f"General English ({cf.metadata['name']})"
             general_arch = cf.metadata["architecture"]
             general_params = cf.metadata["parameters"]
-            if cf.is_configured:
-                # To avoid eating Cloudflare quota or slowing down every health poll,
-                # mark as loaded if credentials are valid
+            state = cf.provider_state
+            if state == "online":
                 general_is_loaded = True
-                general_desc = f"Managed Cloudflare Workers AI ({cf.model_id})"
+                general_desc = f"Managed Cloudflare Workers AI ({cf.model_id}) - Online"
+            elif state == "configured":
+                general_is_loaded = False
+                general_desc = f"Cloudflare Workers AI ({cf.model_id}) - Configured (pending first inference verification)"
+            elif state == "unavailable":
+                general_is_loaded = False
+                general_desc = f"Cloudflare Workers AI ({cf.model_id}) - Unavailable: {cf.last_error}"
             else:
                 general_is_loaded = False
                 general_desc = "Cloudflare Workers AI unconfigured (missing server credentials)"

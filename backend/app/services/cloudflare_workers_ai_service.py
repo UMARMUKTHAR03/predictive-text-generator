@@ -7,13 +7,17 @@ from typing import List, Tuple, Dict, Any, Optional
 from backend.app.schemas import PredictionCandidate, GenerationToken
 
 CLOUDFLARE_BASE_URL = "https://api.cloudflare.com/client/v4/accounts/{account_id}/ai/v1/chat/completions"
-DEFAULT_MODEL_ID = "@cf/meta/llama-3.2-1b-instruct"
+DEFAULT_MODEL_ID = "@cf/google/gemma-4-26b-a4b-it"
 
 class CloudflareWorkersAIProvider:
     """
     Managed Inference Provider adapter for Cloudflare Workers AI.
-    Runs serverless Llama 3.2 1B Instruct without loading model weights into
-    the 512 MB Render Free instance.
+    Runs serverless Google Gemma 4 26B-A4B-IT (Mixture-of-Experts with 4B active parameters)
+    without loading model weights into the 512 MB Render Free instance.
+    
+    Model Lifecycle Status:
+      - Active, fully supported on Cloudflare Workers AI catalog.
+      - Zero planned deprecation date (unlike @cf/meta/llama-3.2-1b-instruct which is deprecated Nov 20, 2026).
     
     Credentials (CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_API_TOKEN) are read strictly
     from server-side environment variables and are never exposed to clients,
@@ -30,25 +34,51 @@ class CloudflareWorkersAIProvider:
         self.api_token = api_token or os.environ.get("CLOUDFLARE_API_TOKEN", "").strip()
         self.model_id = model_id or os.environ.get("GENERAL_MODEL_ID", DEFAULT_MODEL_ID).strip()
         self.timeout_seconds = timeout_seconds
+        # Dynamic state tracking: 'unconfigured', 'configured', 'online', 'unavailable'
+        self.has_verified_online = False
+        self.last_error: Optional[str] = None
 
     @property
     def is_configured(self) -> bool:
         return bool(self.account_id and self.api_token)
 
     @property
+    def provider_state(self) -> str:
+        if not self.is_configured:
+            return "unconfigured"
+        if self.last_error:
+            return "unavailable"
+        if self.has_verified_online:
+            return "online"
+        return "configured"
+
+    @property
     def metadata(self) -> Dict[str, Any]:
+        is_gemma = "gemma-4" in self.model_id.lower() or "gemma" in self.model_id.lower()
+        model_name = "Gemma 4 26B-A4B-IT (General English)" if is_gemma else "Llama 3.2 1B Instruct (General English)"
+        arch = "Gemma 4 Mixture-of-Experts (26B total, 4B active parameters)" if is_gemma else "Llama 3.2 1B Autoregressive Transformer (16 layers, 2048 hidden)"
+        params = 26000000000 if is_gemma else 1230000000
+        active_params = 4000000000 if is_gemma else 1230000000
+        context_len = 256000 if is_gemma else 8192
+        license_str = "Gemma Open Model License" if is_gemma else "Llama 3.2 Community License"
+        lifecycle_status = "Active Supported (No planned deprecation)" if is_gemma else "Deprecated on Nov 20, 2026"
+
         return {
-            "name": "Llama 3.2 1B Instruct (General English)",
+            "name": model_name,
             "provider": "Cloudflare Workers AI (Serverless Managed Inference)",
             "model_id": self.model_id,
-            "architecture": "Llama 3.2 1B Autoregressive Transformer (16 layers, 2048 hidden, 32 heads)",
-            "parameters": 1230000000,
-            "vocab_size": 128256,
-            "context_length": 8192,
-            "license": "Llama 3.2 Community License",
+            "architecture": arch,
+            "parameters": params,
+            "active_parameters": active_params,
+            "vocab_size": 256000 if is_gemma else 128256,
+            "context_length": context_len,
+            "license": license_str,
+            "lifecycle_status": lifecycle_status,
             "domain": "General English (Open-domain conversations, emails, creative writing, articles)",
             "is_configured": self.is_configured,
-            "status": "configured" if self.is_configured else "unconfigured_missing_credentials",
+            "provider_state": self.provider_state,
+            "probabilities_available": False,
+            "ranking_mode": "rank_only",
             "quota_notice": "Cloudflare Workers AI Free Tier provides 10,000 Neurons/day. Zero paid resources required."
         }
 
@@ -97,10 +127,14 @@ class CloudflareWorkersAIProvider:
                 resp_bytes = resp.read()
                 latency_ms = (time.perf_counter() - t0) * 1000
                 res_json = json.loads(resp_bytes.decode("utf-8"))
+                # Mark as verified online upon successful inference response
+                self.has_verified_online = True
+                self.last_error = None
                 return res_json, latency_ms
         except urllib.error.HTTPError as he:
             latency_ms = (time.perf_counter() - t0) * 1000
             err_body = he.read().decode("utf-8", errors="replace")
+            self.last_error = f"HTTP {he.code}: {err_body}"
             from fastapi import HTTPException
             if he.code == 429:
                 raise HTTPException(
@@ -118,12 +152,14 @@ class CloudflareWorkersAIProvider:
                     detail=f"Cloudflare Workers AI upstream error (HTTP {he.code}): {err_body}"
                 )
         except urllib.error.URLError as ue:
+            self.last_error = str(ue.reason)
             from fastapi import HTTPException
             raise HTTPException(
                 status_code=503,
                 detail=f"Cloudflare Workers AI connection timeout or network failure: {str(ue.reason)}"
             )
         except Exception as ex:
+            self.last_error = str(ex)
             from fastapi import HTTPException
             raise HTTPException(
                 status_code=503,
@@ -132,20 +168,10 @@ class CloudflareWorkersAIProvider:
 
     def check_health(self) -> bool:
         """
-        Verify live connectivity with Cloudflare Workers AI using a 1-token minimal test.
-        Returns True if successful, False if credentials missing or upstream unreachable.
+        Check health status WITHOUT consuming billable Neurons on routine polls.
+        Returns True if previously verified online; False otherwise.
         """
-        if not self.is_configured:
-            return False
-        try:
-            res, _ = self._call_chat_completions(
-                messages=[{"role": "user", "content": "ping"}],
-                max_tokens=1,
-                temperature=0.1
-            )
-            return bool("choices" in res and len(res["choices"]) > 0)
-        except Exception:
-            return False
+        return self.provider_state == "online"
 
     def predict_next_words(
         self,
@@ -286,3 +312,4 @@ class CloudflareWorkersAIProvider:
         ]
 
         return generated_text, completed_text, tokens_generated, round(latency_ms, 2)
+

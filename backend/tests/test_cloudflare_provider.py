@@ -13,7 +13,7 @@ def cf_provider():
     return CloudflareWorkersAIProvider(
         account_id="test_account_123",
         api_token="test_secret_token_456",
-        model_id="@cf/meta/llama-3.2-1b-instruct"
+        model_id="@cf/google/gemma-4-26b-a4b-it"
     )
 
 def test_missing_credentials_raises_503():
@@ -131,9 +131,15 @@ def test_model_router_cloudflare_integration(monkeypatch):
 
     router = ModelRouter()
     assert router.is_cloudflare_provider is True
-    assert router.general_metadata["name"] == "Llama 3.2 1B Instruct (General English)"
+    assert "Gemma 4" in router.general_metadata["name"]
+    assert router.general_metadata["lifecycle_status"] == "Active Supported (No planned deprecation)"
 
-    # Mock predict
+    # Provider configured but not yet verified -> state is 'configured', not 'online'
+    health_before = router.get_health_status()
+    assert health_before.general_model_loaded is False
+    assert "Configured" in health_before.modes["general"].description
+
+    # Mock successful predict
     with patch.object(
         router.cloudflare_service,
         "predict_next_words",
@@ -142,9 +148,41 @@ def test_model_router_cloudflare_integration(monkeypatch):
         res = router.predict("AI", mode="general")
         assert res.mode == "general"
         assert res.candidates[0].word == "is"
-        assert "Llama 3.2 1B" in res.model_name
+        assert "Gemma 4" in res.model_name
         assert router.stats["total_predictions"] == 1
         assert router.stats["predictions_by_mode"]["general"] == 1
+
+    # Now that an inference has completed successfully, provider state transitions to 'online'
+    router.cloudflare_service.has_verified_online = True
+    health_after = router.get_health_status()
+    assert health_after.general_model_loaded is True
+    assert "Online" in health_after.modes["general"].description
+
+def test_provider_unavailable_state_on_upstream_failure(monkeypatch):
+    monkeypatch.setenv("GENERAL_PROVIDER", "cloudflare_workers_ai")
+    monkeypatch.setenv("CLOUDFLARE_ACCOUNT_ID", "mock_acc_123")
+    monkeypatch.setenv("CLOUDFLARE_API_TOKEN", "mock_tok_456")
+
+    router = ModelRouter()
+    # Simulate an upstream error
+    router.cloudflare_service.last_error = "HTTP 429: Rate limit exceeded"
+    assert router.cloudflare_service.provider_state == "unavailable"
+    health = router.get_health_status()
+    assert health.general_model_loaded is False
+    assert "Unavailable" in health.modes["general"].description
+
+def test_health_polling_does_not_call_inference(monkeypatch):
+    monkeypatch.setenv("GENERAL_PROVIDER", "cloudflare_workers_ai")
+    monkeypatch.setenv("CLOUDFLARE_ACCOUNT_ID", "mock_acc_123")
+    monkeypatch.setenv("CLOUDFLARE_API_TOKEN", "mock_tok_456")
+
+    router = ModelRouter()
+    with patch.object(router.cloudflare_service, "_call_chat_completions") as mock_inference:
+        # Polling get_health_status multiple times
+        for _ in range(5):
+            h = router.get_health_status()
+        # Zero billable inference calls made
+        assert mock_inference.call_count == 0
 
 def test_technical_mode_remains_intact_when_cloudflare_active(monkeypatch):
     monkeypatch.setenv("GENERAL_PROVIDER", "cloudflare_workers_ai")
@@ -176,3 +214,4 @@ def test_no_secret_exposure_in_responses(monkeypatch):
     assert secret_token not in meta_str
     assert "secret_acc_id_789" not in health_str
     assert "secret_acc_id_789" not in meta_str
+

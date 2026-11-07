@@ -19,9 +19,10 @@ import { PredictResponse, GenerateResponse, WritingMode } from '../types/api';
 interface WritingStudioProps {
   activeMode: WritingMode;
   setActiveMode: (mode: WritingMode) => void;
+  modelInfo?: any;
 }
 
-export const WritingStudio: React.FC<WritingStudioProps> = ({ activeMode, setActiveMode }) => {
+export const WritingStudio: React.FC<WritingStudioProps> = ({ activeMode, setActiveMode, modelInfo }) => {
   const [inputText, setInputText] = useState(
     activeMode === 'general' ? 'The future of artificial intelligence' : 'Deep learning architectures for'
   );
@@ -413,27 +414,51 @@ export const WritingStudio: React.FC<WritingStudioProps> = ({ activeMode, setAct
               <span className="text-emerald-400 font-semibold uppercase">{activeMode}</span>
             </div>
             <div className="flex justify-between border-b border-slate-800 pb-2">
-              <span className="text-slate-400">Architecture</span>
-              <span className="text-slate-200 font-mono">
-                {activeMode === 'general' ? 'DistilGPT-2 (Transformer)' : 'BiLSTM (150 units)'}
+              <span className="text-slate-400">Model Name</span>
+              <span className="text-slate-200 font-medium text-right max-w-[180px] truncate">
+                {activeMode === 'general'
+                  ? (modelInfo?.modes?.general?.name || 'General English Engine')
+                  : (modelInfo?.modes?.technical?.name || 'Technical Writing BiLSTM')}
               </span>
             </div>
             <div className="flex justify-between border-b border-slate-800 pb-2">
-              <span className="text-slate-400">Vocabulary</span>
+              <span className="text-slate-400">Architecture</span>
+              <span className="text-slate-200 font-mono text-right max-w-[180px] truncate">
+                {activeMode === 'general'
+                  ? (modelInfo?.modes?.general?.architecture || 'Autoregressive Transformer')
+                  : 'BiLSTM (150 units)'}
+              </span>
+            </div>
+            <div className="flex justify-between border-b border-slate-800 pb-2">
+              <span className="text-slate-400">Vocabulary / Context</span>
               <span className="text-slate-200 font-mono">
-                {activeMode === 'general' ? '50,257 BPE' : '7,299 tokens'}
+                {activeMode === 'general'
+                  ? `${modelInfo?.modes?.general?.vocab_size ? modelInfo.modes.general.vocab_size.toLocaleString() : '50k+'} / ${modelInfo?.modes?.general?.context_length ? modelInfo.modes.general.context_length.toLocaleString() : '1k+'}`
+                  : '7,299 / 20'}
               </span>
             </div>
             <div className="flex justify-between border-b border-slate-800 pb-2">
               <span className="text-slate-400">Parameters</span>
               <span className="text-slate-200 font-mono">
-                {activeMode === 'general' ? '81,912,576' : '3,229,299'}
+                {activeMode === 'general'
+                  ? (modelInfo?.modes?.general?.parameters ? modelInfo.modes.general.parameters.toLocaleString() : '81.9M - 26B')
+                  : '3,229,299'}
+              </span>
+            </div>
+            <div className="flex justify-between border-b border-slate-800 pb-2">
+              <span className="text-slate-400">Probabilities</span>
+              <span className="text-emerald-400 font-mono">
+                {activeMode === 'general'
+                  ? (modelInfo?.modes?.general?.probabilities_available ? 'Available' : 'Rank-Only (#1 - #k)')
+                  : 'Authentic Softmax'}
               </span>
             </div>
             <div className="flex justify-between">
               <span className="text-slate-400">License</span>
-              <span className="text-emerald-400 font-mono">
-                {activeMode === 'general' ? 'Apache 2.0' : 'MIT'}
+              <span className="text-emerald-400 font-mono text-right">
+                {activeMode === 'general'
+                  ? (modelInfo?.modes?.general?.license || 'Open Model License')
+                  : 'MIT'}
               </span>
             </div>
           </div>
