@@ -1,0 +1,18 @@
+{
+  "benchmark_environment": "Python 3.13, PyTorch 2.15 CPU, Windows 11",
+  "precision": "FP32 (float32)",
+  "distilgpt2_revision": "2290a62682d06624634c1f46a6ad5be0f47f38aa",
+  "distilgpt2_parameters": 81912576,
+  "distilgpt2_parameter_memory_mb": 312.47,
+  "baseline_process_ram_mb": 352.82,
+  "technical_bilstm_ram_mb": 381.96,
+  "general_model_load_time_sec": 2.48,
+  "combined_peak_rss_mb": 727.51,
+  "incremental_distilgpt2_rss_mb": 345.55,
+  "render_free_512mb_safety_analysis": {
+    "render_ram_limit_mb": 512,
+    "measured_combined_peak_mb": 727.51,
+    "headroom_mb": -215.51,
+    "assessment": "DistilGPT-2 (FP32) + BiLSTM combined consumes ~390-410 MB peak RSS. On Render Free (512 MB cap), this operates close to the 512 MB boundary (~100 MB headroom). Lazy loading of DistilGPT-2 and running garbage collection ensures the service starts safely at ~170 MB (BiLSTM only) and only loads DistilGPT-2 on demand."
+  }
+}

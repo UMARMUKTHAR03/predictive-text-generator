@@ -6,13 +6,16 @@ from typing import List, Tuple, Dict, Any, Optional
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from backend.app.schemas import PredictionCandidate, GenerationToken
 
+PINNED_DISTILGPT2_REVISION = "2290a62682d06624634c1f46a6ad5be0f47f38aa"
+
 class GeneralLanguageModelService:
     """
     General English Writing Language Model Service powered by DistilGPT-2 (82M params).
-    Provides causal autoregressive text generation and next-word candidate extraction.
+    Uses a pinned Hugging Face revision and robust whole-word BPE boundary filtering.
     """
-    def __init__(self, model_id: str = "distilbert/distilgpt2"):
+    def __init__(self, model_id: str = "distilbert/distilgpt2", revision: str = PINNED_DISTILGPT2_REVISION):
         self.model_id = model_id
+        self.revision = revision
         self.device = torch.device("cpu")
         self.tokenizer = None
         self.model = None
@@ -20,6 +23,8 @@ class GeneralLanguageModelService:
         self.metadata = {
             "name": "DistilGPT-2 (General English)",
             "model_id": model_id,
+            "revision": revision,
+            "publisher": "DistilBERT authors / Hugging Face",
             "architecture": "Causal Autoregressive Transformer (6 layers, 768 hidden, 12 heads)",
             "parameters": 81912576,
             "vocab_size": 50257,
@@ -32,12 +37,11 @@ class GeneralLanguageModelService:
         if self.is_loaded:
             return
         t0 = time.perf_counter()
-        print(f"Loading General Language Model: {self.model_id}...")
-        self.tokenizer = AutoTokenizer.from_pretrained(self.model_id)
-        # Ensure pad token is configured cleanly
+        print(f"Loading General Language Model: {self.model_id} (revision: {self.revision[:7]})...")
+        self.tokenizer = AutoTokenizer.from_pretrained(self.model_id, revision=self.revision)
         if self.tokenizer.pad_token is None:
             self.tokenizer.pad_token = self.tokenizer.eos_token
-        self.model = AutoModelForCausalLM.from_pretrained(self.model_id)
+        self.model = AutoModelForCausalLM.from_pretrained(self.model_id, revision=self.revision)
         self.model.eval()
         self.is_loaded = True
         print(f"General Language Model loaded in {time.perf_counter() - t0:.2f}s")
@@ -47,6 +51,8 @@ class GeneralLanguageModelService:
         self.model = None
         self.tokenizer = None
         self.is_loaded = False
+        import gc
+        gc.collect()
         torch.cuda.empty_cache() if torch.cuda.is_available() else None
 
     def predict_next_words(self, text: str, top_k: int = 5, temperature: float = 1.0) -> Tuple[List[PredictionCandidate], List[str], float]:
@@ -65,18 +71,31 @@ class GeneralLanguageModelService:
             scaled_logits = logits / max(temperature, 1e-4)
             probs = F.softmax(scaled_logits, dim=-1)[0] # [vocab_size]
 
-        # Extract top 30 tokens and filter for whole-word candidates
-        top_probs, top_indices = probs.topk(min(30, probs.size(-1)), dim=-1)
+        # Extract top 50 candidates to allow thorough BPE whole-word filtering
+        top_probs, top_indices = probs.topk(min(50, probs.size(-1)), dim=-1)
 
         candidates: List[PredictionCandidate] = []
         seen_words = set()
+        ends_with_space = len(text) == 0 or text[-1].isspace()
 
         for prob, idx in zip(top_probs, top_indices):
-            tok_str = self.tokenizer.decode([idx.item()])
-            clean_word = tok_str.strip()
+            raw_token = self.tokenizer.decode([idx.item()])
+            clean_word = raw_token.strip()
 
-            # Must contain alphanumeric characters (exclude isolated punctuation or empty whitespace)
-            if not clean_word or not re.search(r"[a-zA-Z0-9]", clean_word):
+            # Filter special tokens, empty strings, or pure punctuation
+            if not clean_word or clean_word.startswith("<|") or clean_word.endswith("|>"):
+                continue
+            if not any(c.isalnum() for c in clean_word):
+                continue
+
+            # In GPT-2 BPE, whole-word tokens start with leading whitespace (ASCII 32 or \u0120)
+            # If the input ends with a space, any alphanumeric token starts a valid new word.
+            # If the input doesn't end with a space, prioritize whole word completions with leading space,
+            # or valid word completions for partial typing.
+            starts_new_word = raw_token.startswith(" ") or raw_token.startswith("\n") or ends_with_space
+
+            # Reject isolated subwords (e.g. 'ing', 'tion') if they lack word boundaries when user completed a word
+            if ends_with_space and not starts_new_word:
                 continue
 
             lower_word = clean_word.lower()
@@ -117,7 +136,9 @@ class GeneralLanguageModelService:
             "do_sample": do_sample,
             "pad_token_id": self.tokenizer.eos_token_id,
             "repetition_penalty": repetition_penalty,
-            "attention_mask": attention_mask
+            "attention_mask": attention_mask,
+            "return_dict_in_generate": True,
+            "output_scores": True
         }
 
         if do_sample:
@@ -126,18 +147,21 @@ class GeneralLanguageModelService:
                 gen_kwargs["top_k"] = top_k
 
         with torch.no_grad():
-            output_ids = self.model.generate(input_ids, **gen_kwargs)
+            gen_outputs = self.model.generate(input_ids, **gen_kwargs)
 
+        output_ids = gen_outputs.sequences
+        scores = gen_outputs.scores  # Tuple of [batch_size, vocab_size] logits per generated token
         generated_ids = output_ids[0][input_ids.shape[-1]:]
         generated_text = self.tokenizer.decode(generated_ids, skip_special_tokens=True).strip()
         completed_text = (prompt.strip() + " " + generated_text).strip()
 
-        # Token breakdown
+        # Calculate actual mathematical probabilities from generation scores
         tokens_generated = []
-        for tid in generated_ids:
-            tok_str = self.tokenizer.decode([tid.item()])
-            tokens_generated.append(GenerationToken(token=tok_str, probability=1.0))
+        for step_idx, (score_step, token_id) in enumerate(zip(scores, generated_ids)):
+            step_probs = F.softmax(score_step, dim=-1)
+            actual_prob = float(step_probs[0, token_id].item())
+            tok_str = self.tokenizer.decode([token_id.item()])
+            tokens_generated.append(GenerationToken(token=tok_str, probability=round(actual_prob, 4)))
 
         latency_ms = (time.perf_counter() - t0) * 1000
         return generated_text, completed_text, tokens_generated, round(latency_ms, 2)
-

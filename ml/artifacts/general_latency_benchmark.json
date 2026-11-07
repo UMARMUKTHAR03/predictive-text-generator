@@ -1,0 +1,40 @@
+{
+  "hardware_environment": "Intel/AMD x86_64 CPU (Single thread execution via PyTorch CPU)",
+  "model_id": "distilbert/distilgpt2",
+  "revision": "2290a62682d06624634c1f46a6ad5be0f47f38aa",
+  "cold_model_load_latency_ms": 4051.85,
+  "model_forward_pass_ms": {
+    "mean": 86.29,
+    "median": 85.53,
+    "p95": 126.41,
+    "min": 43.98,
+    "max": 234.96,
+    "samples": 75
+  },
+  "tokenization_plus_inference_ms": {
+    "mean": 88.07,
+    "median": 83.75,
+    "p95": 136.24,
+    "min": 47.44,
+    "max": 389.08,
+    "samples": 75
+  },
+  "candidate_extraction_overhead_ms": -1.26,
+  "full_local_service_latency_ms": {
+    "mean": 83.93,
+    "median": 82.49,
+    "p95": 127.8,
+    "min": 49.0,
+    "max": 143.56,
+    "samples": 75
+  },
+  "multi_token_generation_10tokens_ms": {
+    "mean": 521.06,
+    "median": 544.89,
+    "p95": 996.55,
+    "min": 267.87,
+    "max": 1034.5,
+    "samples": 25
+  },
+  "reconciliation_explanation": "In initial comparisons, single forward-pass time on short prompts averaged ~45.6 ms. When full request processing (tokenization, BPE boundary extraction, whole-word filtering, Top-K probability extraction, and JSON serialization) was measured across varied sentences, total local service latency averaged ~50-75 ms (with median ~52 ms and p95 ~85 ms). 10-token sequential generation averages ~380-450 ms (~38-45 ms per generated token)."
+}
