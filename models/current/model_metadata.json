@@ -1,0 +1,24 @@
+{
+  "name": "NeuroText AI BiLSTM Language Model",
+  "version": "1.0.0",
+  "framework": "PyTorch",
+  "architecture": "Bidirectional LSTM (Embedding 100 -> BiLSTM 150 -> Linear Head)",
+  "vocab_size": 7299,
+  "embedding_dim": 100,
+  "hidden_dim": 150,
+  "max_sequence_len": 40,
+  "metrics": {
+    "top1_accuracy": 0.1518,
+    "top3_accuracy": 0.2279,
+    "top5_accuracy": 0.2744,
+    "top10_accuracy": 0.3445,
+    "test_loss": 6.3764,
+    "perplexity": 587.82
+  },
+  "dataset": {
+    "name": "Medium Articles Dataset",
+    "domain": "Data science, machine learning, and tech headline titles",
+    "total_articles": 6508,
+    "split": "80% Train, 10% Val, 10% Test (Title-level leak-free split)"
+  }
+}

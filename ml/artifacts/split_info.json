@@ -1,0 +1,13 @@
+{
+  "total_titles": 6508,
+  "train_titles_count": 5206,
+  "val_titles_count": 651,
+  "test_titles_count": 651,
+  "train_sequences_count": 38863,
+  "val_sequences_count": 4736,
+  "test_sequences_count": 4862,
+  "max_sequence_len": 40,
+  "total_words": 7299,
+  "vocab_size": 7298,
+  "random_seed": 42
+}

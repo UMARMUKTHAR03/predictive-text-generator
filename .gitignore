@@ -1,2 +1,7 @@
-# Build and Release Folders
-.h5
+__pycache__/
+*.pyc
+node_modules/
+.pytest_cache/
+ml/data/*.csv
+ml/artifacts/*.npy
+.env
