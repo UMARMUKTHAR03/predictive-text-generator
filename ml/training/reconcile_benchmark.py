@@ -109,7 +109,7 @@ benchmark_results = {
             "p95": round(p95_svc, 3),
             "description": "Full local pipeline: regex tokenization, vocabulary mapping, tensor creation, forward pass, temperature-scaled softmax, Top-K extraction, and word mapping (200 warm iterations)"
         },
-        "note_on_historical_0_33ms": "The 0.331 ms value was the batched per-sample amortized time during DataLoader evaluation (batch_size=256), whereas single-item online inference latency is ~1.2-1.4 ms for forward pass and ~1.8 ms for the full service."
+        "note_on_historical_0_33ms": "0.331 ms is historical amortized per-sample batch evaluation latency during DataLoader evaluation (batch_size=256). In single-item CPU online inference, model forward-pass latency is 2.35 ms median and 3.32 ms mean, and full local prediction-service latency is 4.24 ms median and 5.58 ms mean."
     },
     "baseline_comparison": {
         "baseline_model": "Unigram Frequency Baseline (Predicts most frequent training tokens)",
