@@ -13,7 +13,9 @@
     "top5_accuracy": 0.2744,
     "top10_accuracy": 0.3445,
     "test_loss": 6.3764,
-    "perplexity": 587.82
+    "perplexity": 587.82,
+    "forward_pass_latency_ms": 2.35,
+    "local_service_latency_ms": 4.24
   },
   "dataset": {
     "name": "Medium Articles Dataset",

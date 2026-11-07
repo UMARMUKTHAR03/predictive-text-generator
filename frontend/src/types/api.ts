@@ -43,13 +43,35 @@ export interface ModelInfo {
     top3_accuracy: number;
     top5_accuracy: number;
     top10_accuracy: number;
-    avg_inference_latency_ms: number;
+    latencies?: {
+      model_forward_pass_ms: {
+        mean: number;
+        median: number;
+        p95: number;
+        description: string;
+      };
+      full_local_service_ms: {
+        mean: number;
+        median: number;
+        p95: number;
+        description: string;
+      };
+      note_on_historical_0_33ms: string;
+    };
     baseline_comparison?: {
       baseline_model: string;
+      most_frequent_training_word: string;
       baseline_top1_accuracy: number;
+      baseline_top3_accuracy: number;
       baseline_top5_accuracy: number;
       baseline_top10_accuracy: number;
       generalization_gap_analysis: {
+        vocab_size: number;
+        random_guess_top1: number;
+        unigram_baseline_top1: number;
+        model_test_top1: number;
+        model_test_top5: number;
+        model_test_top10: number;
         train_test_gap_explanation: string;
       };
     };
@@ -80,4 +102,3 @@ export interface AnalyticsData {
   avg_latency_ms: number;
   uptime_seconds: number;
 }
-

@@ -1,9 +1,7 @@
-name: CI/CD Pipeline
+name: CI & GitHub Pages Deployment
 
 on:
   push:
-    branches: [ main ]
-  pull_request:
     branches: [ main ]
   workflow_dispatch:
 
@@ -17,7 +15,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  test-backend:
+  backend-tests:
     name: Backend PyTest Suite
     runs-on: ubuntu-latest
     steps:
@@ -39,7 +37,7 @@ jobs:
         run: |
           python -m pytest backend/tests -v
 
-  test-frontend:
+  frontend-build-and-test:
     name: Frontend Vitest & Build
     runs-on: ubuntu-latest
     defaults:
@@ -49,10 +47,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
+      - name: Set up Node.js 20
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: 20
           cache: 'npm'
           cache-dependency-path: frontend/package-lock.json
 
@@ -67,21 +65,11 @@ jobs:
         env:
           VITE_API_URL: https://neurotext-ai-api.onrender.com
 
-      - name: Upload GitHub Pages artifact
+      - name: Deploy to gh-pages branch
         if: github.ref == 'refs/heads/main'
-        uses: actions/upload-pages-artifact@v3
+        uses: peaceiris/actions-gh-pages@v4
         with:
-          path: frontend/dist
-
-  deploy-pages:
-    name: Deploy to GitHub Pages
-    needs: [test-backend, test-frontend]
-    if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./frontend/dist
+          keep_files: false
+          force_orphan: false

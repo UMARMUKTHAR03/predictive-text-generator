@@ -6,10 +6,8 @@ import {
   Activity, 
   Zap, 
   ArrowRight, 
-  CheckCircle2, 
-  Database,
   Layers,
-  BookOpen
+  Clock
 } from 'lucide-react';
 import { ModelInfo, HealthStatus } from '../types/api';
 
@@ -21,10 +19,10 @@ interface DashboardProps {
 
 export const Dashboard: React.FC<DashboardProps> = ({ 
   setActiveTab, 
-  modelInfo, 
-  health 
+  modelInfo 
 }) => {
   const metrics = modelInfo?.metrics;
+  const fwdLatency = metrics?.latencies?.model_forward_pass_ms?.median ?? 2.35;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
@@ -110,14 +108,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg">
           <div className="flex items-center justify-between text-slate-400 mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider">Inference Latency</span>
-            <Zap className="w-4 h-4 text-sky-400" />
+            <span className="text-xs font-semibold uppercase tracking-wider">Forward Latency</span>
+            <Clock className="w-4 h-4 text-sky-400" />
           </div>
           <div className="text-2xl font-bold text-white font-mono">
-            {metrics ? `${metrics.avg_inference_latency_ms.toFixed(2)} ms` : '0.33 ms'}
+            {fwdLatency.toFixed(2)} ms
           </div>
           <div className="text-xs text-slate-400 mt-2">
-            Single-token forward pass (CPU)
+            CPU tensor forward pass (median)
           </div>
         </div>
       </div>
@@ -162,7 +160,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </div>
           <h3 className="text-lg font-bold text-white mb-2">Operational Analytics</h3>
           <p className="text-sm text-slate-400 leading-relaxed mb-4">
-            Live request counters, end-to-end service latency tracking, API uptime, and baseline model comparison against unigram frequency.
+            Live request counters, separate forward vs full service latency tracking, API uptime, and baseline model comparison against unigram frequency.
           </p>
           <button
             onClick={() => setActiveTab('analytics')}
