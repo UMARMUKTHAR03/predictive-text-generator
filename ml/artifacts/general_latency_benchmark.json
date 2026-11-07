@@ -1,40 +1,47 @@
 {
-  "hardware_environment": "Intel/AMD x86_64 CPU (Single thread execution via PyTorch CPU)",
+  "hardware_environment": "Intel/AMD x86_64 CPU (PyTorch 2.15 CPU, single-thread reference)",
   "model_id": "distilbert/distilgpt2",
   "revision": "2290a62682d06624634c1f46a6ad5be0f47f38aa",
-  "cold_model_load_latency_ms": 4051.85,
+  "cold_model_load_latency_ms": 489.82,
   "model_forward_pass_ms": {
-    "mean": 86.29,
-    "median": 85.53,
-    "p95": 126.41,
-    "min": 43.98,
-    "max": 234.96,
+    "mean": 41.93,
+    "median": 41.57,
+    "p95": 55.09,
+    "min": 32.36,
+    "max": 68.16,
     "samples": 75
   },
   "tokenization_plus_inference_ms": {
-    "mean": 88.07,
-    "median": 83.75,
-    "p95": 136.24,
-    "min": 47.44,
-    "max": 389.08,
+    "mean": 41.54,
+    "median": 40.94,
+    "p95": 49.75,
+    "min": 30.26,
+    "max": 60.7,
     "samples": 75
   },
-  "candidate_extraction_overhead_ms": -1.26,
+  "candidate_extraction_overhead_ms": {
+    "mean": 0.77,
+    "median": 0.72,
+    "p95": 1.31,
+    "min": 0.48,
+    "max": 2.17,
+    "samples": 75
+  },
   "full_local_service_latency_ms": {
-    "mean": 83.93,
-    "median": 82.49,
-    "p95": 127.8,
-    "min": 49.0,
-    "max": 143.56,
+    "mean": 45.92,
+    "median": 39.91,
+    "p95": 65.23,
+    "min": 30.5,
+    "max": 245.7,
     "samples": 75
   },
   "multi_token_generation_10tokens_ms": {
-    "mean": 521.06,
-    "median": 544.89,
-    "p95": 996.55,
-    "min": 267.87,
-    "max": 1034.5,
+    "mean": 258.4,
+    "median": 251.55,
+    "p95": 360.64,
+    "min": 234.3,
+    "max": 362.43,
     "samples": 25
   },
-  "reconciliation_explanation": "In initial comparisons, single forward-pass time on short prompts averaged ~45.6 ms. When full request processing (tokenization, BPE boundary extraction, whole-word filtering, Top-K probability extraction, and JSON serialization) was measured across varied sentences, total local service latency averaged ~50-75 ms (with median ~52 ms and p95 ~85 ms). 10-token sequential generation averages ~380-450 ms (~38-45 ms per generated token)."
+  "benchmark_methodology": "All metrics measured over 75 evaluations across 5 distinct sentence contexts. Timing uses high-resolution time.perf_counter() with warm cache. Forward-pass measures torch.no_grad() PyTorch model forward pass. Candidate extraction measures top-100 BPE decoding and whole-word candidate deduplication. Full service latency encompasses tokenization, model forward pass, candidate extraction, and Pydantic object construction."
 }

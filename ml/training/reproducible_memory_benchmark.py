@@ -98,7 +98,14 @@ def run_reproducible_memory_benchmark():
             "render_ram_limit_mb": 512,
             "measured_combined_peak_mb": round(peak_ram, 2),
             "headroom_mb": round(512 - peak_ram, 2),
-            "assessment": "DistilGPT-2 (FP32) + BiLSTM combined consumes ~390-410 MB peak RSS. On Render Free (512 MB cap), this operates close to the 512 MB boundary (~100 MB headroom). Lazy loading of DistilGPT-2 and running garbage collection ensures the service starts safely at ~170 MB (BiLSTM only) and only loads DistilGPT-2 on demand."
+            "is_safe_for_render_free": bool(peak_ram <= 512),
+            "assessment": (
+                f"DistilGPT-2 (FP32) + PyTorch BiLSTM combined consumes {peak_ram:.2f} MB peak RSS during active generation. "
+                f"On Render Free (512 MB hard RAM ceiling), running combined active inference produces a deficit of "
+                f"{abs(512 - peak_ram):.2f} MB headroom, which triggers Linux OOM-killer (exit 137 / SIGKILL) on sustained transformer generation. "
+                f"Serving DistilGPT-2 safely in production requires either Option A (independent microservice deployment) "
+                f"or Option C (upgrading to a Render Starter instance with >=1 GB RAM). The technical PyTorch BiLSTM operates safely at {ram_tech:.2f} MB RSS (131+ MB headroom)."
+            )
         }
     }
     

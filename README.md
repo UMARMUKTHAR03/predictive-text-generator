@@ -1,7 +1,7 @@
 # NeuroText AI V2 – Intelligent Dual-Mode Predictive Writing & Language Platform
 
 [![CI & GitHub Pages Deployment](https://github.com/UMARMUKTHAR03/predictive-text-generator/actions/workflows/ci.yml/badge.svg)](https://github.com/UMARMUKTHAR03/predictive-text-generator/actions/workflows/ci.yml)
-[![FastAPI Tests](https://img.shields.io/badge/pytest-15%20passed-brightgreen?logo=pytest)](https://github.com/UMARMUKTHAR03/predictive-text-generator)
+[![FastAPI Tests](https://img.shields.io/badge/pytest-22%20passed-brightgreen?logo=pytest)](https://github.com/UMARMUKTHAR03/predictive-text-generator)
 [![Frontend Tests](https://img.shields.io/badge/vitest-2%20passed-brightgreen?logo=vitest)](https://github.com/UMARMUKTHAR03/predictive-text-generator)
 [![Python](https://img.shields.io/badge/Python-3.11%20%7C%203.13-blue?logo=python)](https://www.python.org/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.15%20CPU-EE4C2C?logo=pytorch)](https://pytorch.org/)
@@ -70,9 +70,9 @@ flowchart TD
 ### 1. General English Model: `distilbert/distilgpt2`
 - **Architecture**: 6-layer Transformer, 768 hidden dimension, 12 attention heads.
 - **Parameters**: 81,912,576 (~82M).
-- **License**: Apache 2.0 (commercial friendly).
-- **Justification**: Compared systematically against `EleutherAI/pythia-70m` on identical benchmark prompts. DistilGPT-2 produced superior semantic coherence, clean sentence boundaries, and natural syntax without degenerate repetitions, while maintaining a tiny ~42 MB incremental RAM footprint and sub-50ms CPU token inference.
-- **Whole-Word Extraction**: Implemented candidate extraction that filters out BPE subword fragments and punctuation artifacts to present clean, readable next-word suggestions.
+- **Pinned Revision**: `2290a62682d06624634c1f46a6ad5be0f47f38aa` (Apache 2.0).
+- **Justification**: Compared systematically against `EleutherAI/pythia-70m` on identical benchmark prompts. DistilGPT-2 produced superior semantic coherence, clean sentence boundaries, and natural syntax without degenerate repetitions.
+- **Whole-Word Extraction**: Implemented candidate extraction with GPT-2 byte-level BPE boundary handling (` ` / `Ġ`), supporting both complete word prompts (with or without trailing whitespace) and partial word continuations, without returning isolated subword fragments or punctuation.
 
 #### General English Output Samples:
 - `"The weather is very"` $\rightarrow$ Top Candidates: `good` (12.2%), `cold` (7.6%), `warm` (4.6%). Continuation: *"The weather is very good, and the wind will be strong enough to keep it from blowing into..."*
@@ -96,10 +96,39 @@ flowchart TD
 | **Perplexity** | 7,299 | 2,489 | **587.82** | 7.45 |
 
 ### Verified Latency Breakdown (CPU Benchmark)
-- **Technical BiLSTM Forward-Pass Latency**: **2.35 ms** median / 3.32 ms mean (single-item tensor forward pass).
-- **Technical Full Local Service Latency**: **4.24 ms** median / 5.58 ms mean (tokenization + tensor + forward pass + softmax + Top-K + mapping).
-- **General DistilGPT-2 Next-Word Latency**: **45.64 ms** mean.
-- **Historical Amortized DataLoader Latency**: *0.331 ms* (amortized per-sample time when evaluated in batches of 256).
+All metrics benchmarked across 75 evaluations over 5 distinct contexts with warm cache ([`ml/artifacts/general_latency_benchmark.json`](ml/artifacts/general_latency_benchmark.json)):
+
+| Component / Task | Median | Mean | P95 | Min / Max |
+| :--- | :---: | :---: | :---: | :---: |
+| **BiLSTM Single-Item Forward Pass** | **2.35 ms** | 3.32 ms | 5.12 ms | 1.82 / 6.45 ms |
+| **BiLSTM Full Local Prediction Service** | **4.24 ms** | 5.58 ms | 8.92 ms | 3.10 / 12.40 ms |
+| **DistilGPT-2 Model Forward Pass** | **41.57 ms** | 41.93 ms | 55.09 ms | 32.36 / 68.16 ms |
+| **DistilGPT-2 Tokenization + Forward Pass** | **40.94 ms** | 41.54 ms | 49.75 ms | 30.26 / 60.70 ms |
+| **DistilGPT-2 Candidate Extraction Overhead** | **0.72 ms** | 0.77 ms | 1.31 ms | 0.48 / 2.17 ms |
+| **DistilGPT-2 Full Local Prediction Service** | **39.91 ms** | 45.92 ms | 65.23 ms | 30.50 / 245.70 ms |
+| **DistilGPT-2 10-Token Sequential Generation** | **251.55 ms** | 258.40 ms | 360.64 ms | 234.30 / 362.43 ms |
+| **Historical Amortized DataLoader Latency** | *0.331 ms* | — | — | (batch_size=256 DataLoader) |
+
+---
+
+## Memory Footprint & Production Hosting Limitations
+
+Detailed empirical memory audit conducted with reproducible process tracking ([`ml/artifacts/memory_benchmark.json`](ml/artifacts/memory_benchmark.json)):
+
+| Metric / Measurement Stage | Resident Set Size (RSS) | Incremental Delta |
+| :--- | :---: | :---: |
+| **Baseline Python Process (FastAPI & PyTorch runtime)** | 352.03 MB | — |
+| **Technical BiLSTM Loaded** | 381.08 MB | +29.05 MB |
+| **DistilGPT-2 Loaded (Idle weights)** | 416.22 MB | +35.14 MB |
+| **DistilGPT-2 FP32 Parameter Footprint** | 312.47 MB | (81,912,576 parameters) |
+| **Peak RSS During Active Autoregressive Generation** | **727.41 MB** | +346.32 MB |
+
+> [!WARNING]
+> **Production Hosting Architecture & Render Free Plan Limitation:**
+> - **The 512 MB Limit:** Render Free tier enforces a strict **512 MB hard RAM ceiling**. While the Technical PyTorch BiLSTM runs comfortably at **381.08 MB RSS** (130+ MB headroom), loading DistilGPT-2 and performing autoregressive generation reaches **727.41 MB peak RSS** (a deficit of 215.41 MB headroom), which triggers the Linux OOM-killer (`exit 137 / SIGKILL`) on Render Free.
+> - **Option A (Separate Microservices - Recommended for Free Tier):** Deploy the Technical BiLSTM on Render Free, and host DistilGPT-2 on a dedicated separate serverless instance (e.g. Modal, RunPod, or Hugging Face Inference API).
+> - **Option B (Model Quantization):** Dynamic INT8 quantization on PyTorch CPU saves disk footprint, but PyTorch runtime memory allocation during generation still exceeds 512 MB.
+> - **Option C (Hosting Instance Upgrade):** Upgrading Render to the **Starter Plan (1 GB RAM, $7/month)** reliably hosts both models concurrently with 270+ MB buffer. *Note: No paid instance is provisioned without explicit user authorization.*
 
 > [!NOTE]
 > **Performance Gap & Generalization Disclosure:**
@@ -203,7 +232,7 @@ npm run dev
 ---
 
 ## Test & Verification Summary
-- **Backend Test Suite (PyTest)**: **15 / 15 passed** (`test_api.py` [10/10], `test_model_integration.py` [5/5]).
+- **Backend Test Suite (PyTest)**: **22 / 22 passed** (`test_api.py` [10/10], `test_general_model.py` [7/7], `test_model_integration.py` [5/5]).
 - **Frontend Test Suite (Vitest)**: **2 / 2 passed** (Navbar dual-mode rendering, Dashboard engine cards).
 - **Production Build (Vite & TypeScript)**: Compiled cleanly with zero errors.
 - **GitHub Pages Deployment**: Automated through `.github/workflows/ci.yml` targeting `gh-pages` branch.

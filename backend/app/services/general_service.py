@@ -56,13 +56,25 @@ class GeneralLanguageModelService:
         torch.cuda.empty_cache() if torch.cuda.is_available() else None
 
     def predict_next_words(self, text: str, top_k: int = 5, temperature: float = 1.0) -> Tuple[List[PredictionCandidate], List[str], float]:
+        """
+        Extract whole-word candidate completions using GPT-2 byte-level BPE boundaries.
+        Supports both completed word prompts (with or without trailing whitespace)
+        and partial word continuations, without returning isolated subword fragments.
+        """
         if not self.is_loaded:
             self.load()
 
         t0 = time.perf_counter()
-        inputs = self.tokenizer(text, return_tensors="pt")
-        input_ids = inputs["input_ids"]
+        ends_with_space = len(text) > 0 and text[-1].isspace()
+        norm_text = text.rstrip()
+        if not norm_text:
+            return [], [], 0.0
 
+        parts = norm_text.split()
+        last_word = parts[-1] if parts else ""
+
+        inputs = self.tokenizer(norm_text, return_tensors="pt")
+        input_ids = inputs["input_ids"]
         tokens = [self.tokenizer.decode([t]) for t in input_ids[0]]
 
         with torch.no_grad():
@@ -71,38 +83,46 @@ class GeneralLanguageModelService:
             scaled_logits = logits / max(temperature, 1e-4)
             probs = F.softmax(scaled_logits, dim=-1)[0] # [vocab_size]
 
-        # Extract top 50 candidates to allow thorough BPE whole-word filtering
-        top_probs, top_indices = probs.topk(min(50, probs.size(-1)), dim=-1)
+        # Extract top 100 candidate tokens for robust BPE whole-word filtering
+        top_probs, top_indices = probs.topk(min(100, probs.size(-1)), dim=-1)
 
         candidates: List[PredictionCandidate] = []
         seen_words = set()
-        ends_with_space = len(text) == 0 or text[-1].isspace()
 
         for prob, idx in zip(top_probs, top_indices):
             raw_token = self.tokenizer.decode([idx.item()])
-            clean_word = raw_token.strip()
+            clean_token = raw_token.strip()
 
             # Filter special tokens, empty strings, or pure punctuation
-            if not clean_word or clean_word.startswith("<|") or clean_word.endswith("|>"):
+            if not clean_token or clean_token.startswith("<|") or clean_token.endswith("|>"):
                 continue
-            if not any(c.isalnum() for c in clean_word):
+            if not any(c.isalnum() for c in clean_token):
                 continue
 
             # In GPT-2 BPE, whole-word tokens start with leading whitespace (ASCII 32 or \u0120)
-            # If the input ends with a space, any alphanumeric token starts a valid new word.
-            # If the input doesn't end with a space, prioritize whole word completions with leading space,
-            # or valid word completions for partial typing.
-            starts_new_word = raw_token.startswith(" ") or raw_token.startswith("\n") or ends_with_space
+            starts_new_word = raw_token.startswith(" ") or raw_token.startswith("\n")
 
-            # Reject isolated subwords (e.g. 'ing', 'tion') if they lack word boundaries when user completed a word
-            if ends_with_space and not starts_new_word:
-                continue
+            if ends_with_space:
+                # Trailing space: user finished previous word. Next token MUST start a new word.
+                if not starts_new_word:
+                    continue
+                cand_word = clean_token
+            else:
+                # No trailing space: user is typing.
+                if starts_new_word:
+                    cand_word = clean_token
+                else:
+                    # Subword continuation (e.g. 'play' + 'fully' => 'playfully', 'conver' + 'ters' => 'converters')
+                    # Reject capital-letter tokens continuing a lowercase word
+                    if clean_token[0].isupper() and last_word.islower():
+                        continue
+                    cand_word = last_word + clean_token
 
-            lower_word = clean_word.lower()
+            lower_word = cand_word.lower()
             if lower_word not in seen_words:
                 seen_words.add(lower_word)
                 candidates.append(PredictionCandidate(
-                    word=clean_word,
+                    word=cand_word,
                     probability=round(prob.item(), 4),
                     rank=len(candidates) + 1
                 ))
@@ -155,7 +175,12 @@ class GeneralLanguageModelService:
         generated_text = self.tokenizer.decode(generated_ids, skip_special_tokens=True).strip()
         completed_text = (prompt.strip() + " " + generated_text).strip()
 
-        # Calculate actual mathematical probabilities from generation scores
+        # Calculate authentic mathematical probabilities from generation scores.
+        # Note on probability semantics:
+        # In Hugging Face transformers, gen_outputs.scores contains the transition scores
+        # (processed logits incorporating repetition penalties and decoding constraints) at each generation step.
+        # Applying softmax yields the exact normalized probability distribution over the active vocabulary
+        # at that decoding step for greedy decoding, temperature scaling, top-K filtering, and sampling.
         tokens_generated = []
         for step_idx, (score_step, token_id) in enumerate(zip(scores, generated_ids)):
             step_probs = F.softmax(score_step, dim=-1)
