@@ -1,7 +1,7 @@
 # NeuroText AI V2 – Intelligent Dual-Mode Predictive Writing & Language Platform
 
 [![CI & GitHub Pages Deployment](https://github.com/UMARMUKTHAR03/predictive-text-generator/actions/workflows/ci.yml/badge.svg)](https://github.com/UMARMUKTHAR03/predictive-text-generator/actions/workflows/ci.yml)
-[![FastAPI Tests](https://img.shields.io/badge/pytest-70%20passed-brightgreen?logo=pytest)](https://github.com/UMARMUKTHAR03/predictive-text-generator)
+[![FastAPI Tests](https://img.shields.io/badge/pytest-61%20passed%2C%209%20skipped-brightgreen?logo=pytest)](https://github.com/UMARMUKTHAR03/predictive-text-generator)
 [![Frontend Tests](https://img.shields.io/badge/vitest-2%20passed-brightgreen?logo=vitest)](https://github.com/UMARMUKTHAR03/predictive-text-generator)
 [![Python](https://img.shields.io/badge/Python-3.11%20%7C%203.13-blue?logo=python)](https://www.python.org/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.15%20CPU-EE4C2C?logo=pytorch)](https://pytorch.org/)
@@ -215,7 +215,7 @@ cd predictive-text-generator
 # Install dependencies
 pip install -r backend/requirements.txt
 
-# Run all 62 backend tests
+# Run backend tests (70 collected tests: 61 passed, 9 skipped in CI without ONNX weights; 70 passed locally with weights)
 python -m pytest backend/tests -v
 
 # Start FastAPI server
@@ -240,12 +240,74 @@ npm run dev
 ---
 
 ## Test & Verification Summary
-- **Backend Test Suite (PyTest)**: **62 / 62 passed** (`test_cloudflare_provider.py` [14/14], `test_experimental_onnx.py` [10/10], `test_routing_safety.py` [10/10], `test_api.py` [10/10], `test_general_api.py` [6/6], `test_general_model.py` [7/7], `test_model_integration.py` [5/5]).
-- **Skipped Tests Policy**: Tests requiring local ONNX weights or external live credentials gracefully report explicit skip reasons when artifacts or credentials are absent; CI runs strictly offline without billable API calls.
+- **Backend Test Suite (PyTest)**: **61 passed, 9 skipped** in automated GitHub Actions CI (and **70 / 70 passed** in local development environments where quantized ONNX research weights are present).
+  - `backend/tests/test_cloudflare_provider.py`: 22 / 22 passed.
+  - `backend/tests/test_routing_safety.py`: 10 / 10 passed.
+  - `backend/tests/test_api.py`: 10 / 10 passed.
+  - `backend/tests/test_general_api.py`: 6 / 6 passed.
+  - `backend/tests/test_general_model.py`: 7 / 7 passed.
+  - `backend/tests/test_model_integration.py`: 5 / 5 passed.
+  - `backend/tests/test_experimental_onnx.py`: 1 passed, 9 skipped in clean CI environments where gitignored ONNX model weights (`ml/artifacts/onnx/distilgpt2_int8/model_quantized.onnx`) are omitted from version control.
+- **Skipped Tests Policy**: Tests requiring local ONNX weights gracefully skip in clean checkout environments without failing the test suite; artifact validation tests (`test_onnx_memory_benchmark_artifact_validation`) execute and pass unconditionally against genuine JSON benchmark artifacts. CI runs strictly offline without billable API calls.
 - **Frontend Test Suite (Vitest)**: **2 / 2 passed** (Navbar dual-mode rendering, Dashboard engine cards).
 - **Production Build (Vite & TypeScript)**: Compiled cleanly with zero errors.
 - **GitHub Pages Deployment**: Automated through `.github/workflows/ci.yml` targeting `gh-pages` branch.
 - **Render Backend Blueprint**: Configured in `render.yaml`. The web service is provisionable on Render with Python 3.11.
+
+---
+
+## Evaluation Accounting & Portfolio Demonstration
+
+### 1. Dual Production Models Verified
+1. **General English Mode (Production Provider)**:
+   - **Engine**: Google Gemma 4 26B-A4B-IT (`@cf/google/gemma-4-26b-a4b-it`) via Cloudflare Workers AI OpenAI-compatible chat completions.
+   - **Characteristics**: 26B total Mixture-of-Experts (4B active parameters), zero RAM consumption on the 512 MB Render Free tier, rank-only next-word suggestions (#1 to #k) with probability reported honestly as `0.0` (zero fabricated probabilities).
+   - **Thinking Mode**: Explicitly bypassed (`"chat_template_kwargs": {"enable_thinking": false}`) with a 96-token prediction budget to prevent internal thought chains from exhausting token budgets.
+2. **Technical Writing Mode (Local Production Model)**:
+   - **Engine**: Custom PyTorch Bidirectional LSTM (3,229,299 parameters) hosted locally on Render CPU.
+   - **Characteristics**: 381.08 MB peak RSS, sub-5ms low-latency inference, authentic Softmax probability distributions over a 7,299 technical vocabulary.
+
+### 2. Standardized 20-Prompt Evaluation Protocol
+The evaluation framework in [`ml/training/evaluate_cloudflare_general.py`](ml/training/evaluate_cloudflare_general.py) enforces strict accounting across 20 benchmark prompts covering 5 diverse writing domains (Professional Email, Everyday Conversational, Educational Explanations, Articles/Journalism, and Short Story Narratives):
+- **Separate Operation Accounting**:
+  - **20 Generation Operations**: Evaluates sequential multi-token completions, recording token lists and latency per prompt.
+  - **20 Prediction Operations**: Evaluates rank-only next-word candidate suggestions, recording ranked words and latency per prompt.
+  - **40 Total Upstream Requests**: Tracks successful and failed requests independently for each operation.
+  - **Distinct Latency Metrics**: Computes average, min, and max latency separately for generation and prediction operations.
+- **Artifact Isolation**:
+  - When Cloudflare credentials are not present, the framework generates an offline prompt manifest ([`ml/artifacts/cloudflare_gemma_prompt_manifest.json`](ml/artifacts/cloudflare_gemma_prompt_manifest.json)) and **never** fabricates simulated evaluation results or overwrites the genuine evaluation artifact.
+  - Live evaluations require authentic server credentials and execute without synthetic approximations.
+
+### 3. Portfolio Demonstration Instructions
+To demonstrate NeuroText AI V2 locally or via live endpoints:
+
+1. **Live Web Application**:
+   - Navigate to [https://umarmukthar03.github.io/predictive-text-generator/](https://umarmukthar03.github.io/predictive-text-generator/).
+   - Toggle between **Technical Mode** (PyTorch BiLSTM) and **General Mode** (Gemma 4 MoE) using the Mode Selector switch.
+   - Test next-word predictions by typing incomplete phrases (e.g. *"The future of artificial intelligence"* or *"Deep learning models"*).
+   - Test text generation by clicking **Generate Continuation** to view greedy and sampling continuations.
+2. **Backend API Demonstration**:
+   - Verify health and model lifecycle status:
+     ```bash
+     curl -s https://neurotext-ai-api.onrender.com/health | jq .
+     ```
+   - Request Technical next-word predictions:
+     ```bash
+     curl -s -X POST https://neurotext-ai-api.onrender.com/predict \
+       -H "Content-Type: application/json" \
+       -d '{"text": "Deep neural networks are", "mode": "technical", "top_k": 5}' | jq .
+     ```
+   - Request General next-word predictions:
+     ```bash
+     curl -s -X POST https://neurotext-ai-api.onrender.com/predict \
+       -H "Content-Type: application/json" \
+       -d '{"text": "The project roadmap includes", "mode": "general", "top_k": 5}' | jq .
+     ```
+3. **Evaluating Offline Prompt Manifest**:
+   ```bash
+   python ml/training/evaluate_cloudflare_general.py
+   ```
+   Inspects environment credentials and safely updates [`ml/artifacts/cloudflare_gemma_prompt_manifest.json`](ml/artifacts/cloudflare_gemma_prompt_manifest.json) when offline.
 
 ---
 

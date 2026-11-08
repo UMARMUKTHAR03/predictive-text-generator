@@ -353,11 +353,20 @@ def test_evaluation_configured_mocked_execution(monkeypatch, tmp_path):
          patch.object(provider, "predict_next_words", return_value=([PredictionCandidate(word="test", probability=0.0, rank=1)], ["test"], 45.0)):
         res = run_genuine_cloudflare_evaluation(provider, output_path=test_eval_path)
         assert res["status"] == "genuine_evaluated"
-        assert res["successful_requests"] == 20
+        assert res["total_prompts"] == 20
+        assert res["total_operations"] == 40
+        assert res["total_inference_requests"] == 40
+        assert res["successful_requests"] == 40
         assert res["failed_requests"] == 0
+        assert res["generation_metrics"]["successful_operations"] == 20
+        assert res["prediction_metrics"]["successful_operations"] == 20
+        assert res["generation_metrics"]["avg_latency_ms"] == 110.0
+        assert res["prediction_metrics"]["avg_latency_ms"] == 45.0
         assert "Gemma 4" in res["methodology"]
         assert len(res["results"]) == 20
         assert res["results"][0]["continuation"] == "continuation text"
         assert res["results"][0]["ranked_suggestions"] == ["test"]
+        assert res["results"][0]["generation"]["continuation"] == "continuation text"
+        assert res["results"][0]["prediction"]["ranked_suggestions"] == ["test"]
 
 
