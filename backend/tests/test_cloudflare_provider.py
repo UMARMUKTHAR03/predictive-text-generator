@@ -106,6 +106,122 @@ def test_successful_general_suggestions_structured(cf_provider):
             assert c.probability == 0.0
             assert c.rank == idx + 1
 
+def test_thinking_disabled_in_payload(cf_provider):
+    """Verify chat_template_kwargs includes enable_thinking: False and max_tokens=96 by default."""
+    with patch("urllib.request.urlopen") as mock_url:
+        mock_resp = MagicMock()
+        mock_resp.read.return_value = json.dumps({
+            "choices": [{"message": {"role": "assistant", "content": '["next", "word"]'}}]
+        }).encode("utf-8")
+        mock_resp.__enter__.return_value = mock_resp
+        mock_url.return_value = mock_resp
+
+        cf_provider.predict_next_words("Hello world", top_k=2)
+
+        # Inspect request payload passed to urllib
+        call_args = mock_url.call_args
+        req = call_args[0][0]
+        payload = json.loads(req.data.decode("utf-8"))
+
+        assert "chat_template_kwargs" in payload
+        assert payload["chat_template_kwargs"] == {"enable_thinking": False}
+        assert payload["max_tokens"] == 96
+
+def test_empty_choices_raises_502(cf_provider):
+    """Verify HTTP 502 is raised when Cloudflare returns choices=[] without usable content."""
+    mock_resp = {"choices": []}
+    with patch.object(cf_provider, "_call_chat_completions", return_value=(mock_resp, 80.0)):
+        with pytest.raises(Exception) as exc:
+            cf_provider.predict_next_words("Incomplete prompt", top_k=3)
+        assert "502" in str(exc.value)
+        assert "empty prediction response" in str(exc.value).lower()
+        assert cf_provider.has_verified_online is False
+
+def test_empty_message_content_raises_502(cf_provider):
+    """Verify HTTP 502 is raised when message.content is empty string."""
+    mock_resp = {
+        "choices": [
+            {
+                "message": {
+                    "role": "assistant",
+                    "content": ""
+                }
+            }
+        ]
+    }
+    with patch.object(cf_provider, "_call_chat_completions", return_value=(mock_resp, 75.0)):
+        with pytest.raises(Exception) as exc:
+            cf_provider.predict_next_words("Incomplete prompt", top_k=3)
+        assert "502" in str(exc.value)
+        assert "empty prediction response" in str(exc.value).lower()
+        assert cf_provider.has_verified_online is False
+
+def test_missing_choices_raises_502(cf_provider):
+    """Verify HTTP 502 is raised when choices is completely missing and no alternative text exists."""
+    mock_resp = {"success": True, "result": {}}
+    with patch.object(cf_provider, "_call_chat_completions", return_value=(mock_resp, 60.0)):
+        with pytest.raises(Exception) as exc:
+            cf_provider.predict_next_words("Incomplete prompt", top_k=3)
+        assert "502" in str(exc.value)
+        assert cf_provider.has_verified_online is False
+
+def test_duplicate_suggestions_deduplicated(cf_provider):
+    """Verify candidate words are deduplicated while preserving rank and order."""
+    mock_resp = {
+        "choices": [
+            {
+                "message": {
+                    "role": "assistant",
+                    "content": '["technology", "Technology", "innovates", "technology", "leads"]'
+                }
+            }
+        ]
+    }
+    with patch.object(cf_provider, "_call_chat_completions", return_value=(mock_resp, 90.0)):
+        candidates, _, _ = cf_provider.predict_next_words("Modern", top_k=5)
+        words = [c.word.lower() for c in candidates]
+        assert words == ["technology", "innovates", "leads"]
+        assert len(set(words)) == len(words)
+        for idx, c in enumerate(candidates):
+            assert c.rank == idx + 1
+            assert c.probability == 0.0
+
+def test_generation_empty_response_raises_502(cf_provider):
+    """Verify generate_continuation raises HTTP 502 on empty upstream response."""
+    mock_resp = {"choices": [{"message": {"role": "assistant", "content": ""}}]}
+    with patch.object(cf_provider, "_call_chat_completions", return_value=(mock_resp, 85.0)):
+        with pytest.raises(Exception) as exc:
+            cf_provider.generate_continuation("The future", max_tokens=15)
+        assert "502" in str(exc.value)
+        assert "empty continuation response" in str(exc.value).lower()
+        assert cf_provider.has_verified_online is False
+
+def test_provider_health_stays_configured_on_empty_response(cf_provider):
+    """Verify provider does not transition to 'online' if inference produces empty response."""
+    assert cf_provider.has_verified_online is False
+    assert cf_provider.provider_state == "configured"
+    mock_resp = {"choices": []}
+    with patch.object(cf_provider, "_call_chat_completions", return_value=(mock_resp, 50.0)):
+        with pytest.raises(Exception):
+            cf_provider.predict_next_words("Test", top_k=3)
+    assert cf_provider.has_verified_online is False
+    assert cf_provider.provider_state == "unavailable"
+
+def test_provider_health_transitions_online_on_valid_prediction(cf_provider):
+    """Verify provider transitions to 'online' upon receiving valid candidates."""
+    assert cf_provider.has_verified_online is False
+    assert cf_provider.provider_state == "configured"
+    mock_resp = {
+        "choices": [
+            {"message": {"role": "assistant", "content": '["advances", "grows"]'}}
+        ]
+    }
+    with patch.object(cf_provider, "_call_chat_completions", return_value=(mock_resp, 65.0)):
+        candidates, _, _ = cf_provider.predict_next_words("Science", top_k=2)
+        assert len(candidates) == 2
+        assert cf_provider.has_verified_online is True
+        assert cf_provider.provider_state == "online"
+
 def test_malformed_json_fallback_extraction(cf_provider):
     # Upstream returns bulleted / numbered text instead of clean JSON array
     mock_resp = {

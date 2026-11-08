@@ -9,6 +9,9 @@ from backend.app.schemas import PredictionCandidate, GenerationToken
 CLOUDFLARE_BASE_URL = "https://api.cloudflare.com/client/v4/accounts/{account_id}/ai/v1/chat/completions"
 DEFAULT_MODEL_ID = "@cf/google/gemma-4-26b-a4b-it"
 
+DEFAULT_PREDICT_MAX_TOKENS = int(os.environ.get("CLOUDFLARE_PREDICT_MAX_TOKENS", "96"))
+DEFAULT_GENERATE_MAX_TOKENS = int(os.environ.get("CLOUDFLARE_GENERATE_MAX_TOKENS", "30"))
+
 class CloudflareWorkersAIProvider:
     """
     Managed Inference Provider adapter for Cloudflare Workers AI.
@@ -94,7 +97,7 @@ class CloudflareWorkersAIProvider:
     def _call_chat_completions(
         self,
         messages: List[Dict[str, str]],
-        max_tokens: int = 30,
+        max_tokens: int = 96,
         temperature: float = 0.7,
         response_format: Optional[Dict[str, str]] = None
     ) -> Tuple[Dict[str, Any], float]:
@@ -113,7 +116,12 @@ class CloudflareWorkersAIProvider:
             "model": self.model_id,
             "messages": messages,
             "max_tokens": max_tokens,
-            "temperature": max(0.01, min(temperature, 2.0))
+            "temperature": max(0.01, min(temperature, 2.0)),
+            # Gemma 4 reasoning mode causes reasoning thought chains to consume token budget
+            # or return empty content when enable_thinking is true. Explicitly disable thinking.
+            "chat_template_kwargs": {
+                "enable_thinking": False
+            }
         }
         if response_format:
             payload_dict["response_format"] = response_format
@@ -136,12 +144,6 @@ class CloudflareWorkersAIProvider:
                 resp_bytes = resp.read()
                 latency_ms = (time.perf_counter() - t0) * 1000
                 res_json = json.loads(resp_bytes.decode("utf-8"))
-                # Mark as verified online upon successful inference response
-                self.has_verified_online = True
-                self.last_verified_timestamp = time.time()
-                self.last_error = None
-                self._cached_health = True
-                self._cached_health_time = time.time()
                 return res_json, latency_ms
         except urllib.error.HTTPError as he:
             latency_ms = (time.perf_counter() - t0) * 1000
@@ -226,6 +228,52 @@ class CloudflareWorkersAIProvider:
         """
         return self.provider_state == "online"
 
+    def _extract_text_content(self, res_json: Any) -> str:
+        """
+        Safely extracts text content from various Cloudflare / OpenAI chat completion response shapes.
+        Handles nulls, missing keys, string responses, and array contents.
+        """
+        if not isinstance(res_json, dict):
+            return ""
+
+        # Primary OpenAI-compatible structure: choices[0].message.content
+        choices = res_json.get("choices")
+        if isinstance(choices, list) and len(choices) > 0 and isinstance(choices[0], dict):
+            message = choices[0].get("message")
+            if isinstance(message, dict):
+                content = message.get("content")
+                if isinstance(content, str):
+                    return content.strip()
+                elif isinstance(content, list):
+                    # In some multi-part formats, content is a list of blocks
+                    text_parts = []
+                    for part in content:
+                        if isinstance(part, dict) and part.get("type") == "text":
+                            text_parts.append(str(part.get("text", "")))
+                        elif isinstance(part, str):
+                            text_parts.append(part)
+                    return " ".join(text_parts).strip()
+            # Some responses have 'text' directly on choice
+            choice_text = choices[0].get("text")
+            if isinstance(choice_text, str):
+                return choice_text.strip()
+
+        # Alternative Workers AI native structure: result.response
+        result = res_json.get("result")
+        if isinstance(result, dict):
+            resp = result.get("response")
+            if isinstance(resp, str):
+                return resp.strip()
+        elif isinstance(result, str):
+            return result.strip()
+
+        # Top-level 'response'
+        top_resp = res_json.get("response")
+        if isinstance(top_resp, str):
+            return top_resp.strip()
+
+        return ""
+
     def predict_next_words(
         self,
         text: str,
@@ -240,6 +288,8 @@ class CloudflareWorkersAIProvider:
         In strict adherence to project standards, probability is reported as 0.0, and candidates
         are explicitly ranked (rank=1, 2, ... top_k). No fabricated probabilities are returned.
         """
+        from fastapi import HTTPException
+
         norm_text = text.rstrip()
         if not norm_text:
             return [], [], 0.0
@@ -263,15 +313,18 @@ class CloudflareWorkersAIProvider:
 
         res_json, latency_ms = self._call_chat_completions(
             messages=messages,
-            max_tokens=40,
+            max_tokens=DEFAULT_PREDICT_MAX_TOKENS,
             temperature=temperature
         )
 
-        choices = res_json.get("choices", [])
-        if not choices:
-            return [], tokens, round(latency_ms, 2)
+        raw_reply = self._extract_text_content(res_json)
+        if not raw_reply:
+            self.last_error = "Upstream Cloudflare Workers AI returned empty prediction content."
+            raise HTTPException(
+                status_code=502,
+                detail="Cloudflare Workers AI returned an empty prediction response. The model did not produce candidate tokens."
+            )
 
-        raw_reply = choices[0].get("message", {}).get("content", "").strip()
         parsed_words: List[str] = []
 
         # Attempt JSON parse of array
@@ -314,12 +367,26 @@ class CloudflareWorkersAIProvider:
             if len(candidates) >= top_k:
                 break
 
+        if not candidates:
+            self.last_error = f"Failed to parse usable candidates from Cloudflare response: '{raw_reply[:100]}'"
+            raise HTTPException(
+                status_code=502,
+                detail=f"Unable to extract candidate suggestions from Cloudflare response: '{raw_reply[:80]}'"
+            )
+
+        # Mark provider as genuinely verified online since usable inference completed
+        self.has_verified_online = True
+        self.last_verified_timestamp = time.time()
+        self.last_error = None
+        self._cached_health = True
+        self._cached_health_time = time.time()
+
         return candidates, tokens, round(latency_ms, 2)
 
     def generate_continuation(
         self,
         prompt: str,
-        max_tokens: int = 15,
+        max_tokens: int = DEFAULT_GENERATE_MAX_TOKENS,
         temperature: float = 0.8,
         strategy: str = "greedy",
         top_k: int = 20,
@@ -328,6 +395,8 @@ class CloudflareWorkersAIProvider:
         """
         Generate multi-token sequential continuation using Cloudflare Workers AI.
         """
+        from fastapi import HTTPException
+
         system_prompt = (
             "You are a writing completion assistant. "
             "Continue the following prompt directly and naturally without repeating the prompt, without adding conversational filler (like 'Here is...'), "
@@ -346,11 +415,13 @@ class CloudflareWorkersAIProvider:
             temperature=effective_temp
         )
 
-        choices = res_json.get("choices", [])
-        if not choices:
-            return "", prompt, [], round(latency_ms, 2)
-
-        generated_text = choices[0].get("message", {}).get("content", "").strip()
+        generated_text = self._extract_text_content(res_json)
+        if not generated_text:
+            self.last_error = "Upstream Cloudflare Workers AI returned empty generation content."
+            raise HTTPException(
+                status_code=502,
+                detail="Cloudflare Workers AI returned an empty continuation response."
+            )
 
         # Clean any leading quote marks or echoes of the prompt if returned
         if generated_text.startswith(prompt):
@@ -363,6 +434,13 @@ class CloudflareWorkersAIProvider:
         tokens_generated: List[GenerationToken] = [
             GenerationToken(token=w, probability=0.0) for w in words
         ]
+
+        # Mark provider as genuinely verified online since usable inference completed
+        self.has_verified_online = True
+        self.last_verified_timestamp = time.time()
+        self.last_error = None
+        self._cached_health = True
+        self._cached_health_time = time.time()
 
         return generated_text, completed_text, tokens_generated, round(latency_ms, 2)
 
