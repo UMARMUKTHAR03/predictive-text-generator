@@ -314,7 +314,23 @@ The evaluation framework in [`ml/training/evaluate_cloudflare_general.py`](ml/tr
   - When Cloudflare credentials are not present, the framework generates an offline prompt manifest ([`ml/artifacts/cloudflare_gemma_prompt_manifest.json`](ml/artifacts/cloudflare_gemma_prompt_manifest.json)) and **never** fabricates simulated evaluation results or overwrites the genuine evaluation artifact.
   - Live evaluations require authentic server credentials and execute without synthetic approximations.
 
-### 3. Portfolio Demonstration Instructions
+### 3. Genuine Gemma 4 Benchmark Results
+
+Authentic production evaluation executed against Cloudflare Workers AI with live server credentials ([`ml/artifacts/cloudflare_gemma_evaluation.json`](ml/artifacts/cloudflare_gemma_evaluation.json)):
+
+- **Model**: Google Gemma 4 26B-A4B-IT (`@cf/google/gemma-4-26b-a4b-it`)
+- **Inference Provider**: Cloudflare Workers AI (Serverless OpenAI-compatible chat completions)
+- **Status**: `genuine_evaluated` (`is_mocked_test`: false)
+- **Tested Prompts**: 20 standardized benchmark prompts across 5 categories (Email, Everyday, Educational, Article, Short Story)
+- **Generation Operations**: 20 / 20 successful
+- **Prediction Operations**: 20 / 20 successful
+- **Total Inference Requests**: 40 / 40 successful (100% success rate, 0 failed requests)
+- **Average Generation Latency**: **962.59 ms** (min: 459.72 ms, max: 3,897.74 ms)
+- **Average Prediction Latency**: **1,187.42 ms** (min: 507.68 ms, max: 6,304.12 ms)
+- **Overall Average Latency**: **1,075.00 ms** across all 40 operations
+- **Evaluation Artifact**: [`ml/artifacts/cloudflare_gemma_evaluation.json`](ml/artifacts/cloudflare_gemma_evaluation.json)
+
+### 4. Portfolio Demonstration Instructions
 To demonstrate NeuroText AI V2 locally or via live endpoints:
 
 1. **Live Web Application**:

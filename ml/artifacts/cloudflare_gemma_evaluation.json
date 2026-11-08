@@ -1,0 +1,972 @@
+{
+  "status": "genuine_evaluated",
+  "is_mocked_test": false,
+  "model_id": "@cf/google/gemma-4-26b-a4b-it",
+  "provider": "Cloudflare Workers AI",
+  "timestamp_utc": "2026-11-08T08:10:51.587133+00:00",
+  "total_prompts": 20,
+  "total_operations": 40,
+  "total_inference_requests": 40,
+  "successful_requests": 40,
+  "failed_requests": 0,
+  "generation_metrics": {
+    "total_operations": 20,
+    "successful_operations": 20,
+    "failed_operations": 0,
+    "avg_latency_ms": 962.59,
+    "min_latency_ms": 459.72,
+    "max_latency_ms": 3897.74
+  },
+  "prediction_metrics": {
+    "total_operations": 20,
+    "successful_operations": 20,
+    "failed_operations": 0,
+    "avg_latency_ms": 1187.42,
+    "min_latency_ms": 507.68,
+    "max_latency_ms": 6304.12
+  },
+  "overall_latency_ms": {
+    "avg_latency_ms": 1075.0
+  },
+  "categories_covered": [
+    "Email",
+    "Everyday",
+    "Educational",
+    "Article",
+    "Short Story"
+  ],
+  "results": [
+    {
+      "category": "Email",
+      "prompt": "I am writing this email to follow up on our discussion regarding",
+      "generation": {
+        "continuation": "the proposed timeline for the upcoming project launch. As we touched upon during our",
+        "tokens": [
+          "the",
+          "proposed",
+          "timeline",
+          "for",
+          "the",
+          "upcoming",
+          "project",
+          "launch.",
+          "As",
+          "we",
+          "touched",
+          "upon",
+          "during",
+          "our"
+        ],
+        "latency_ms": 869.02,
+        "status": "success",
+        "error": null
+      },
+      "prediction": {
+        "ranked_suggestions": [
+          "the project",
+          "our meeting",
+          "the upcoming deadline",
+          "your recent inquiry",
+          "the proposal"
+        ],
+        "latency_ms": 911.25,
+        "status": "success",
+        "error": null
+      },
+      "status": "success",
+      "continuation": "the proposed timeline for the upcoming project launch. As we touched upon during our",
+      "ranked_suggestions": [
+        "the project",
+        "our meeting",
+        "the upcoming deadline",
+        "your recent inquiry",
+        "the proposal"
+      ],
+      "latency_ms": 1780.27
+    },
+    {
+      "category": "Email",
+      "prompt": "Please find attached the updated project roadmap and",
+      "generation": {
+        "continuation": "the corresponding timeline for the upcoming quarter. Please review the milestones and let me",
+        "tokens": [
+          "the",
+          "corresponding",
+          "timeline",
+          "for",
+          "the",
+          "upcoming",
+          "quarter.",
+          "Please",
+          "review",
+          "the",
+          "milestones",
+          "and",
+          "let",
+          "me"
+        ],
+        "latency_ms": 655.83,
+        "status": "success",
+        "error": null
+      },
+      "prediction": {
+        "ranked_suggestions": [
+          "the revised timeline",
+          "the project schedule",
+          "the budget overview",
+          "the team assignments",
+          "the key milestones"
+        ],
+        "latency_ms": 976.67,
+        "status": "success",
+        "error": null
+      },
+      "status": "success",
+      "continuation": "the corresponding timeline for the upcoming quarter. Please review the milestones and let me",
+      "ranked_suggestions": [
+        "the revised timeline",
+        "the project schedule",
+        "the budget overview",
+        "the team assignments",
+        "the key milestones"
+      ],
+      "latency_ms": 1632.5
+    },
+    {
+      "category": "Email",
+      "prompt": "Thank you for your prompt reply regarding the contract",
+      "generation": {
+        "continuation": "and the requested revisions. I have reviewed the updated terms and have a few",
+        "tokens": [
+          "and",
+          "the",
+          "requested",
+          "revisions.",
+          "I",
+          "have",
+          "reviewed",
+          "the",
+          "updated",
+          "terms",
+          "and",
+          "have",
+          "a",
+          "few"
+        ],
+        "latency_ms": 1415.11,
+        "status": "success",
+        "error": null
+      },
+      "prediction": {
+        "ranked_suggestions": [
+          "and the attached documents",
+          "and the recent updates",
+          "sent earlier today",
+          "we discussed",
+          "concerning the terms"
+        ],
+        "latency_ms": 1057.62,
+        "status": "success",
+        "error": null
+      },
+      "status": "success",
+      "continuation": "and the requested revisions. I have reviewed the updated terms and have a few",
+      "ranked_suggestions": [
+        "and the attached documents",
+        "and the recent updates",
+        "sent earlier today",
+        "we discussed",
+        "concerning the terms"
+      ],
+      "latency_ms": 2472.73
+    },
+    {
+      "category": "Email",
+      "prompt": "Could you please clarify the scheduled timeline for the",
+      "generation": {
+        "continuation": "upcoming project milestones and the final delivery date?",
+        "tokens": [
+          "upcoming",
+          "project",
+          "milestones",
+          "and",
+          "the",
+          "final",
+          "delivery",
+          "date?"
+        ],
+        "latency_ms": 1157.55,
+        "status": "success",
+        "error": null
+      },
+      "prediction": {
+        "ranked_suggestions": [
+          "project completion",
+          "upcoming meeting",
+          "next phase",
+          "delivery date",
+          "implementation process"
+        ],
+        "latency_ms": 6304.12,
+        "status": "success",
+        "error": null
+      },
+      "status": "success",
+      "continuation": "upcoming project milestones and the final delivery date?",
+      "ranked_suggestions": [
+        "project completion",
+        "upcoming meeting",
+        "next phase",
+        "delivery date",
+        "implementation process"
+      ],
+      "latency_ms": 7461.67
+    },
+    {
+      "category": "Everyday",
+      "prompt": "The weather today in the city is surprisingly",
+      "generation": {
+        "continuation": "mild, with a gentle breeze carrying the scent of blooming jasmine through the streets",
+        "tokens": [
+          "mild,",
+          "with",
+          "a",
+          "gentle",
+          "breeze",
+          "carrying",
+          "the",
+          "scent",
+          "of",
+          "blooming",
+          "jasmine",
+          "through",
+          "the",
+          "streets"
+        ],
+        "latency_ms": 535.16,
+        "status": "success",
+        "error": null
+      },
+      "prediction": {
+        "ranked_suggestions": [
+          "pleasant",
+          "warm",
+          "cold",
+          "sunny",
+          "unpredictable"
+        ],
+        "latency_ms": 837.91,
+        "status": "success",
+        "error": null
+      },
+      "status": "success",
+      "continuation": "mild, with a gentle breeze carrying the scent of blooming jasmine through the streets",
+      "ranked_suggestions": [
+        "pleasant",
+        "warm",
+        "cold",
+        "sunny",
+        "unpredictable"
+      ],
+      "latency_ms": 1373.07
+    },
+    {
+      "category": "Everyday",
+      "prompt": "We are planning to visit our grandparents this coming",
+      "generation": {
+        "continuation": "weekend, and we are already looking forward to the homemade meals and the stories",
+        "tokens": [
+          "weekend,",
+          "and",
+          "we",
+          "are",
+          "already",
+          "looking",
+          "forward",
+          "to",
+          "the",
+          "homemade",
+          "meals",
+          "and",
+          "the",
+          "stories"
+        ],
+        "latency_ms": 716.82,
+        "status": "success",
+        "error": null
+      },
+      "prediction": {
+        "ranked_suggestions": [
+          "weekend",
+          "summer",
+          "holiday",
+          "month",
+          "Easter"
+        ],
+        "latency_ms": 778.63,
+        "status": "success",
+        "error": null
+      },
+      "status": "success",
+      "continuation": "weekend, and we are already looking forward to the homemade meals and the stories",
+      "ranked_suggestions": [
+        "weekend",
+        "summer",
+        "holiday",
+        "month",
+        "Easter"
+      ],
+      "latency_ms": 1495.45
+    },
+    {
+      "category": "Everyday",
+      "prompt": "After finishing work today, I decided to go for a long walk in",
+      "generation": {
+        "continuation": "the nearby forest, seeking a quiet escape from the relentless hum of the city",
+        "tokens": [
+          "the",
+          "nearby",
+          "forest,",
+          "seeking",
+          "a",
+          "quiet",
+          "escape",
+          "from",
+          "the",
+          "relentless",
+          "hum",
+          "of",
+          "the",
+          "city"
+        ],
+        "latency_ms": 1088.05,
+        "status": "success",
+        "error": null
+      },
+      "prediction": {
+        "ranked_suggestions": [
+          "the park",
+          "the woods",
+          "the city",
+          "the mountains",
+          "the rain"
+        ],
+        "latency_ms": 969.67,
+        "status": "success",
+        "error": null
+      },
+      "status": "success",
+      "continuation": "the nearby forest, seeking a quiet escape from the relentless hum of the city",
+      "ranked_suggestions": [
+        "the park",
+        "the woods",
+        "the city",
+        "the mountains",
+        "the rain"
+      ],
+      "latency_ms": 2057.72
+    },
+    {
+      "category": "Everyday",
+      "prompt": "Can you recommend a good place to have dinner near",
+      "generation": {
+        "continuation": "your current location? To give you the best suggestion, could you please let",
+        "tokens": [
+          "your",
+          "current",
+          "location?",
+          "To",
+          "give",
+          "you",
+          "the",
+          "best",
+          "suggestion,",
+          "could",
+          "you",
+          "please",
+          "let"
+        ],
+        "latency_ms": 730.72,
+        "status": "success",
+        "error": null
+      },
+      "prediction": {
+        "ranked_suggestions": [
+          "here",
+          "my hotel",
+          "the beach",
+          "the office",
+          "the station"
+        ],
+        "latency_ms": 797.67,
+        "status": "success",
+        "error": null
+      },
+      "status": "success",
+      "continuation": "your current location? To give you the best suggestion, could you please let",
+      "ranked_suggestions": [
+        "here",
+        "my hotel",
+        "the beach",
+        "the office",
+        "the station"
+      ],
+      "latency_ms": 1528.39
+    },
+    {
+      "category": "Educational",
+      "prompt": "Photosynthesis is the fundamental biological process through which plants",
+      "generation": {
+        "continuation": "convert light energy into chemical energy. By capturing sunlight using pigments such as chlorophyll",
+        "tokens": [
+          "convert",
+          "light",
+          "energy",
+          "into",
+          "chemical",
+          "energy.",
+          "By",
+          "capturing",
+          "sunlight",
+          "using",
+          "pigments",
+          "such",
+          "as",
+          "chlorophyll"
+        ],
+        "latency_ms": 1024.67,
+        "status": "success",
+        "error": null
+      },
+      "prediction": {
+        "ranked_suggestions": [
+          "convert light into energy",
+          "produce food",
+          "transform sunlight into glucose",
+          "synthesize organic compounds",
+          "capture solar energy"
+        ],
+        "latency_ms": 1032.58,
+        "status": "success",
+        "error": null
+      },
+      "status": "success",
+      "continuation": "convert light energy into chemical energy. By capturing sunlight using pigments such as chlorophyll",
+      "ranked_suggestions": [
+        "convert light into energy",
+        "produce food",
+        "transform sunlight into glucose",
+        "synthesize organic compounds",
+        "capture solar energy"
+      ],
+      "latency_ms": 2057.25
+    },
+    {
+      "category": "Educational",
+      "prompt": "The industrial revolution fundamentally transformed European society by",
+      "generation": {
+        "continuation": "shifting the economic foundation from agrarian subsistence to large-scale manufacturing, which triggered",
+        "tokens": [
+          "shifting",
+          "the",
+          "economic",
+          "foundation",
+          "from",
+          "agrarian",
+          "subsistence",
+          "to",
+          "large-scale",
+          "manufacturing,",
+          "which",
+          "triggered"
+        ],
+        "latency_ms": 742.37,
+        "status": "success",
+        "error": null
+      },
+      "prediction": {
+        "ranked_suggestions": [
+          "shifting labor from agriculture to industry",
+          "accelerating technological innovation",
+          "driving rapid urbanization",
+          "creating a new middle class",
+          "changing production methods"
+        ],
+        "latency_ms": 1122.4,
+        "status": "success",
+        "error": null
+      },
+      "status": "success",
+      "continuation": "shifting the economic foundation from agrarian subsistence to large-scale manufacturing, which triggered",
+      "ranked_suggestions": [
+        "shifting labor from agriculture to industry",
+        "accelerating technological innovation",
+        "driving rapid urbanization",
+        "creating a new middle class",
+        "changing production methods"
+      ],
+      "latency_ms": 1864.77
+    },
+    {
+      "category": "Educational",
+      "prompt": "In calculus, the derivative represents the instantaneous rate of",
+      "generation": {
+        "continuation": "change of a function with respect to a variable.",
+        "tokens": [
+          "change",
+          "of",
+          "a",
+          "function",
+          "with",
+          "respect",
+          "to",
+          "a",
+          "variable."
+        ],
+        "latency_ms": 590.97,
+        "status": "success",
+        "error": null
+      },
+      "prediction": {
+        "ranked_suggestions": [
+          "change",
+          "change of a function",
+          "change in a variable",
+          "change with respect to",
+          "change at a point"
+        ],
+        "latency_ms": 1150.16,
+        "status": "success",
+        "error": null
+      },
+      "status": "success",
+      "continuation": "change of a function with respect to a variable.",
+      "ranked_suggestions": [
+        "change",
+        "change of a function",
+        "change in a variable",
+        "change with respect to",
+        "change at a point"
+      ],
+      "latency_ms": 1741.13
+    },
+    {
+      "category": "Educational",
+      "prompt": "Gravitational waves are ripples in the fabric of spacetime created by",
+      "generation": {
+        "continuation": "the acceleration of massive objects, such as the collision of black holes or the",
+        "tokens": [
+          "the",
+          "acceleration",
+          "of",
+          "massive",
+          "objects,",
+          "such",
+          "as",
+          "the",
+          "collision",
+          "of",
+          "black",
+          "holes",
+          "or",
+          "the"
+        ],
+        "latency_ms": 538.08,
+        "status": "success",
+        "error": null
+      },
+      "prediction": {
+        "ranked_suggestions": [
+          "massive accelerating objects",
+          "the acceleration of massive objects",
+          "black hole mergers",
+          "cosmic events",
+          "violent celestial motions"
+        ],
+        "latency_ms": 1067.38,
+        "status": "success",
+        "error": null
+      },
+      "status": "success",
+      "continuation": "the acceleration of massive objects, such as the collision of black holes or the",
+      "ranked_suggestions": [
+        "massive accelerating objects",
+        "the acceleration of massive objects",
+        "black hole mergers",
+        "cosmic events",
+        "violent celestial motions"
+      ],
+      "latency_ms": 1605.46
+    },
+    {
+      "category": "Article",
+      "prompt": "Renewable energy infrastructure has experienced unprecedented growth across",
+      "generation": {
+        "continuation": "the globe, driven by a combination of plummeting technology costs, aggressive government",
+        "tokens": [
+          "the",
+          "globe,",
+          "driven",
+          "by",
+          "a",
+          "combination",
+          "of",
+          "plummeting",
+          "technology",
+          "costs,",
+          "aggressive",
+          "government"
+        ],
+        "latency_ms": 459.72,
+        "status": "success",
+        "error": null
+      },
+      "prediction": {
+        "ranked_suggestions": [
+          "the globe",
+          "various sectors",
+          "the world",
+          "emerging markets",
+          "developed nations"
+        ],
+        "latency_ms": 688.55,
+        "status": "success",
+        "error": null
+      },
+      "status": "success",
+      "continuation": "the globe, driven by a combination of plummeting technology costs, aggressive government",
+      "ranked_suggestions": [
+        "the globe",
+        "various sectors",
+        "the world",
+        "emerging markets",
+        "developed nations"
+      ],
+      "latency_ms": 1148.27
+    },
+    {
+      "category": "Article",
+      "prompt": "Recent advancements in semiconductor manufacturing indicate that global chip",
+      "generation": {
+        "continuation": "supply chains are undergoing a fundamental structural shift, moving away from centralized production hubs",
+        "tokens": [
+          "supply",
+          "chains",
+          "are",
+          "undergoing",
+          "a",
+          "fundamental",
+          "structural",
+          "shift,",
+          "moving",
+          "away",
+          "from",
+          "centralized",
+          "production",
+          "hubs"
+        ],
+        "latency_ms": 682.33,
+        "status": "success",
+        "error": null
+      },
+      "prediction": {
+        "ranked_suggestions": [
+          "demand is rising",
+          "supply may stabilize",
+          "production is increasing",
+          "shortages are easing",
+          "technologies are evolving"
+        ],
+        "latency_ms": 1049.45,
+        "status": "success",
+        "error": null
+      },
+      "status": "success",
+      "continuation": "supply chains are undergoing a fundamental structural shift, moving away from centralized production hubs",
+      "ranked_suggestions": [
+        "demand is rising",
+        "supply may stabilize",
+        "production is increasing",
+        "shortages are easing",
+        "technologies are evolving"
+      ],
+      "latency_ms": 1731.78
+    },
+    {
+      "category": "Article",
+      "prompt": "Urban planners are increasingly focusing on sustainable public transit to reduce",
+      "generation": {
+        "continuation": "carbon emissions, alleviate traffic congestion, and promote equitable access to essential services across",
+        "tokens": [
+          "carbon",
+          "emissions,",
+          "alleviate",
+          "traffic",
+          "congestion,",
+          "and",
+          "promote",
+          "equitable",
+          "access",
+          "to",
+          "essential",
+          "services",
+          "across"
+        ],
+        "latency_ms": 666.97,
+        "status": "success",
+        "error": null
+      },
+      "prediction": {
+        "ranked_suggestions": [
+          "carbon emissions",
+          "traffic congestion",
+          "environmental impact",
+          "urban sprawl",
+          "fossil fuel dependency"
+        ],
+        "latency_ms": 871.07,
+        "status": "success",
+        "error": null
+      },
+      "status": "success",
+      "continuation": "carbon emissions, alleviate traffic congestion, and promote equitable access to essential services across",
+      "ranked_suggestions": [
+        "carbon emissions",
+        "traffic congestion",
+        "environmental impact",
+        "urban sprawl",
+        "fossil fuel dependency"
+      ],
+      "latency_ms": 1538.04
+    },
+    {
+      "category": "Article",
+      "prompt": "The annual technology symposium highlighted emerging breakthroughs in synthetic",
+      "generation": {
+        "continuation": "biology, specifically focusing on the development of programmable cellular structures capable of real-",
+        "tokens": [
+          "biology,",
+          "specifically",
+          "focusing",
+          "on",
+          "the",
+          "development",
+          "of",
+          "programmable",
+          "cellular",
+          "structures",
+          "capable",
+          "of",
+          "real-"
+        ],
+        "latency_ms": 690.73,
+        "status": "success",
+        "error": null
+      },
+      "prediction": {
+        "ranked_suggestions": [
+          "biology",
+          "intelligence",
+          "materials",
+          "chemistry",
+          "genetics"
+        ],
+        "latency_ms": 726.14,
+        "status": "success",
+        "error": null
+      },
+      "status": "success",
+      "continuation": "biology, specifically focusing on the development of programmable cellular structures capable of real-",
+      "ranked_suggestions": [
+        "biology",
+        "intelligence",
+        "materials",
+        "chemistry",
+        "genetics"
+      ],
+      "latency_ms": 1416.87
+    },
+    {
+      "category": "Short Story",
+      "prompt": "The ancient lantern flickered softly against the damp stone walls of the",
+      "generation": {
+        "continuation": "forgotten catacombs, casting long, dancing shadows that seemed to pull",
+        "tokens": [
+          "forgotten",
+          "catacombs,",
+          "casting",
+          "long,",
+          "dancing",
+          "shadows",
+          "that",
+          "seemed",
+          "to",
+          "pull"
+        ],
+        "latency_ms": 1207.03,
+        "status": "success",
+        "error": null
+      },
+      "prediction": {
+        "ranked_suggestions": [
+          "cave",
+          "catacombs",
+          "dungeon",
+          "castle",
+          "tomb"
+        ],
+        "latency_ms": 861.15,
+        "status": "success",
+        "error": null
+      },
+      "status": "success",
+      "continuation": "forgotten catacombs, casting long, dancing shadows that seemed to pull",
+      "ranked_suggestions": [
+        "cave",
+        "catacombs",
+        "dungeon",
+        "castle",
+        "tomb"
+      ],
+      "latency_ms": 2068.18
+    },
+    {
+      "category": "Short Story",
+      "prompt": "As the spacecraft exited hyperspace, the uncharted planet appeared on the main",
+      "generation": {
+        "continuation": "viewscreen, a swirling marble of violet clouds and jagged, obsidian continents.",
+        "tokens": [
+          "viewscreen,",
+          "a",
+          "swirling",
+          "marble",
+          "of",
+          "violet",
+          "clouds",
+          "and",
+          "jagged,",
+          "obsidian",
+          "continents."
+        ],
+        "latency_ms": 3897.74,
+        "status": "success",
+        "error": null
+      },
+      "prediction": {
+        "ranked_suggestions": [
+          "viewscreen",
+          "monitor",
+          "display",
+          "console",
+          "radar"
+        ],
+        "latency_ms": 507.68,
+        "status": "success",
+        "error": null
+      },
+      "status": "success",
+      "continuation": "viewscreen, a swirling marble of violet clouds and jagged, obsidian continents.",
+      "ranked_suggestions": [
+        "viewscreen",
+        "monitor",
+        "display",
+        "console",
+        "radar"
+      ],
+      "latency_ms": 4405.42
+    },
+    {
+      "category": "Short Story",
+      "prompt": "Elena opened the weathered wooden chest and found an old brass compass and",
+      "generation": {
+        "continuation": "a bundle of yellowed letters tied with a fraying silk ribbon. As",
+        "tokens": [
+          "a",
+          "bundle",
+          "of",
+          "yellowed",
+          "letters",
+          "tied",
+          "with",
+          "a",
+          "fraying",
+          "silk",
+          "ribbon.",
+          "As"
+        ],
+        "latency_ms": 863.89,
+        "status": "success",
+        "error": null
+      },
+      "prediction": {
+        "ranked_suggestions": [
+          "a map",
+          "a faded letter",
+          "a silver key",
+          "a handful of coins",
+          "an intricate watch"
+        ],
+        "latency_ms": 1038.44,
+        "status": "success",
+        "error": null
+      },
+      "status": "success",
+      "continuation": "a bundle of yellowed letters tied with a fraying silk ribbon. As",
+      "ranked_suggestions": [
+        "a map",
+        "a faded letter",
+        "a silver key",
+        "a handful of coins",
+        "an intricate watch"
+      ],
+      "latency_ms": 1902.33
+    },
+    {
+      "category": "Short Story",
+      "prompt": "The autumn wind swept through the empty courtyard, scattering golden leaves across",
+      "generation": {
+        "continuation": "the cracked stone tiles. A single, weathered bench sat near the center,",
+        "tokens": [
+          "the",
+          "cracked",
+          "stone",
+          "tiles.",
+          "A",
+          "single,",
+          "weathered",
+          "bench",
+          "sat",
+          "near",
+          "the",
+          "center,"
+        ],
+        "latency_ms": 718.98,
+        "status": "success",
+        "error": null
+      },
+      "prediction": {
+        "ranked_suggestions": [
+          "the stone pavement",
+          "the ground",
+          "the cobblestones",
+          "the worn path",
+          "the courtyard floor"
+        ],
+        "latency_ms": 999.78,
+        "status": "success",
+        "error": null
+      },
+      "status": "success",
+      "continuation": "the cracked stone tiles. A single, weathered bench sat near the center,",
+      "ranked_suggestions": [
+        "the stone pavement",
+        "the ground",
+        "the cobblestones",
+        "the worn path",
+        "the courtyard floor"
+      ],
+      "latency_ms": 1718.76
+    }
+  ],
+  "methodology": "Genuine evaluation of Google Gemma 4 26B-A4B-IT (@cf/google/gemma-4-26b-a4b-it) conducted via Cloudflare Workers AI OpenAI-compatible chat completions interface. 20 benchmark prompts were independently evaluated across both multi-token continuation generation (20 operations) and next-word prediction (20 operations), totalling 40 actual inference requests. Suggestions are ranked (#1 to #k) without fabricating unmeasured probabilities (reported as 0.0). This model operates as a serverless 26B Mixture-of-Experts (4B active) model on Cloudflare Workers AI, completely distinct from the research DistilGPT-2 and custom PyTorch BiLSTM models."
+}
