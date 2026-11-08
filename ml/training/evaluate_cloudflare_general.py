@@ -33,7 +33,7 @@ EVALUATION_PROMPTS = [
     {"category": "Short Story", "prompt": "The autumn wind swept through the empty courtyard, scattering golden leaves across"}
 ]
 
-def generate_offline_prompt_manifest() -> Dict[str, Any]:
+def generate_offline_prompt_manifest(output_path: str = "ml/artifacts/cloudflare_gemma_prompt_manifest.json") -> Dict[str, Any]:
     """
     Generates a prompt manifest when Cloudflare credentials are not configured.
     Explicitly marked as unevaluated. Never overwrites the genuine evaluation artifact.
@@ -52,14 +52,16 @@ def generate_offline_prompt_manifest() -> Dict[str, Any]:
             "credentials are provided. No simulated data is written to the genuine evaluation artifact."
         )
     }
-    out_file = "ml/artifacts/cloudflare_gemma_prompt_manifest.json"
-    os.makedirs(os.path.dirname(out_file), exist_ok=True)
-    with open(out_file, "w", encoding="utf-8") as f:
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    with open(output_path, "w", encoding="utf-8") as f:
         json.dump(manifest, f, indent=2)
-    print(f"Offline prompt manifest written to {out_file} (genuine evaluation preserved).")
+    print(f"Offline prompt manifest written to {output_path} (genuine evaluation preserved).")
     return manifest
 
-def run_genuine_cloudflare_evaluation(provider: Optional[CloudflareWorkersAIProvider] = None) -> Dict[str, Any]:
+def run_genuine_cloudflare_evaluation(
+    provider: Optional[CloudflareWorkersAIProvider] = None,
+    output_path: str = "ml/artifacts/cloudflare_gemma_evaluation.json"
+) -> Dict[str, Any]:
     """
     Executes actual Cloudflare Workers AI inference across the 20 benchmark prompts.
     Requires server credentials. Never fabricates predictions or tokens.
@@ -69,7 +71,7 @@ def run_genuine_cloudflare_evaluation(provider: Optional[CloudflareWorkersAIProv
 
     if not provider.is_configured:
         print("Notice: Cloudflare Workers AI credentials unconfigured. Writing offline prompt manifest instead.")
-        return generate_offline_prompt_manifest()
+        return generate_offline_prompt_manifest(output_path=output_path if "manifest" in output_path else "ml/artifacts/cloudflare_gemma_prompt_manifest.json")
 
     print(f"Executing genuine Cloudflare Workers AI evaluation for {provider.model_id}...")
     results: List[Dict[str, Any]] = []
@@ -122,11 +124,10 @@ def run_genuine_cloudflare_evaluation(provider: Optional[CloudflareWorkersAIProv
         )
     }
 
-    out_file = "ml/artifacts/cloudflare_gemma_evaluation.json"
-    os.makedirs(os.path.dirname(out_file), exist_ok=True)
-    with open(out_file, "w", encoding="utf-8") as f:
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    with open(output_path, "w", encoding="utf-8") as f:
         json.dump(report, f, indent=2)
-    print(f"Genuine Cloudflare Workers AI evaluation written to {out_file}!")
+    print(f"Genuine Cloudflare Workers AI evaluation written to {output_path}!")
     return report
 
 if __name__ == "__main__":

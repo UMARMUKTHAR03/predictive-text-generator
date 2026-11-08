@@ -1,7 +1,7 @@
 # NeuroText AI V2 – Intelligent Dual-Mode Predictive Writing & Language Platform
 
 [![CI & GitHub Pages Deployment](https://github.com/UMARMUKTHAR03/predictive-text-generator/actions/workflows/ci.yml/badge.svg)](https://github.com/UMARMUKTHAR03/predictive-text-generator/actions/workflows/ci.yml)
-[![FastAPI Tests](https://img.shields.io/badge/pytest-60%20passed-brightgreen?logo=pytest)](https://github.com/UMARMUKTHAR03/predictive-text-generator)
+[![FastAPI Tests](https://img.shields.io/badge/pytest-62%20passed-brightgreen?logo=pytest)](https://github.com/UMARMUKTHAR03/predictive-text-generator)
 [![Frontend Tests](https://img.shields.io/badge/vitest-2%20passed-brightgreen?logo=vitest)](https://github.com/UMARMUKTHAR03/predictive-text-generator)
 [![Python](https://img.shields.io/badge/Python-3.11%20%7C%203.13-blue?logo=python)](https://www.python.org/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.15%20CPU-EE4C2C?logo=pytorch)](https://pytorch.org/)
@@ -215,7 +215,7 @@ cd predictive-text-generator
 # Install dependencies
 pip install -r backend/requirements.txt
 
-# Run all 38 backend tests
+# Run all 62 backend tests
 python -m pytest backend/tests -v
 
 # Start FastAPI server
@@ -240,7 +240,7 @@ npm run dev
 ---
 
 ## Test & Verification Summary
-- **Backend Test Suite (PyTest)**: **60 / 60 passed** (`test_cloudflare_provider.py` [14/14], `test_experimental_onnx.py` [10/10], `test_routing_safety.py` [10/10], `test_api.py` [10/10], `test_general_api.py` [6/6], `test_general_model.py` [7/7], `test_model_integration.py` [5/5]).
+- **Backend Test Suite (PyTest)**: **62 / 62 passed** (`test_cloudflare_provider.py` [14/14], `test_experimental_onnx.py` [10/10], `test_routing_safety.py` [10/10], `test_api.py` [10/10], `test_general_api.py` [6/6], `test_general_model.py` [7/7], `test_model_integration.py` [5/5]).
 - **Skipped Tests Policy**: Tests requiring local ONNX weights or external live credentials gracefully report explicit skip reasons when artifacts or credentials are absent; CI runs strictly offline without billable API calls.
 - **Frontend Test Suite (Vitest)**: **2 / 2 passed** (Navbar dual-mode rendering, Dashboard engine cards).
 - **Production Build (Vite & TypeScript)**: Compiled cleanly with zero errors.
@@ -251,5 +251,6 @@ npm run dev
 
 ## License & Attribution
 - **NeuroText AI Application**: MIT License.
-- **DistilGPT-2 Weights & Architecture**: Apache 2.0 (Hugging Face / DistilBERT authors).
+- **Google Gemma 4 26B-A4B-IT Architecture & Weights**: Apache 2.0 (Google Gemma Terms & Apache 2.0).
+- **DistilGPT-2 Research Weights & Architecture**: Apache 2.0 (Hugging Face / DistilBERT authors).
 - **Medium Data Science Dataset**: Dorian Lazar (Kaggle).

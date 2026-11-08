@@ -36,7 +36,11 @@ class CloudflareWorkersAIProvider:
         self.timeout_seconds = timeout_seconds
         # Dynamic state tracking: 'unconfigured', 'configured', 'online', 'unavailable'
         self.has_verified_online = False
+        self.last_verified_timestamp: Optional[float] = None
         self.last_error: Optional[str] = None
+        self._cached_health: Optional[bool] = None
+        self._cached_health_time: float = 0.0
+        self._health_cache_ttl: float = 60.0  # 60s TTL for lightweight non-inference health check
 
     @property
     def is_configured(self) -> bool:
@@ -81,6 +85,7 @@ class CloudflareWorkersAIProvider:
             "domain": "General English (Open-domain conversations, emails, creative writing, articles)",
             "is_configured": self.is_configured,
             "provider_state": self.provider_state,
+            "last_verified_timestamp": self.last_verified_timestamp,
             "probabilities_available": False,
             "ranking_mode": "rank_only",
             "quota_notice": "Cloudflare Workers AI Free Tier provides 10,000 Neurons/day. Zero paid resources required."
@@ -133,7 +138,10 @@ class CloudflareWorkersAIProvider:
                 res_json = json.loads(resp_bytes.decode("utf-8"))
                 # Mark as verified online upon successful inference response
                 self.has_verified_online = True
+                self.last_verified_timestamp = time.time()
                 self.last_error = None
+                self._cached_health = True
+                self._cached_health_time = time.time()
                 return res_json, latency_ms
         except urllib.error.HTTPError as he:
             latency_ms = (time.perf_counter() - t0) * 1000
@@ -169,6 +177,47 @@ class CloudflareWorkersAIProvider:
                 status_code=503,
                 detail=f"Unexpected error communicating with Cloudflare Workers AI: {str(ex)}"
             )
+
+    def verify_token_connectivity(self) -> bool:
+        """
+        Genuinely verifies API token validity using Cloudflare's non-inference verify endpoint:
+        GET https://api.cloudflare.com/client/v4/user/tokens/verify
+        Zero billable Neurons or model tokens consumed.
+        """
+        if not self.is_configured:
+            return False
+
+        endpoint = "https://api.cloudflare.com/client/v4/user/tokens/verify"
+        req = urllib.request.Request(
+            endpoint,
+            headers={
+                "Authorization": f"Bearer {self.api_token}",
+                "Content-Type": "application/json",
+                "User-Agent": "NeuroText-AI-Token-Verify/2.0"
+            }
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=min(self.timeout_seconds, 5.0)) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
+                if data.get("success") is True:
+                    self.has_verified_online = True
+                    self.last_verified_timestamp = time.time()
+                    self.last_error = None
+                    return True
+                else:
+                    self.last_error = f"Token verification unsuccessful: {data.get('errors')}"
+                    return False
+        except urllib.error.HTTPError as he:
+            err_body = he.read().decode("utf-8", errors="replace")
+            # If 401/403/invalid token, mark unavailable
+            if he.code in (400, 401, 403):
+                self.last_error = f"HTTP {he.code}: Unauthorized or invalid API token"
+            else:
+                self.last_error = f"HTTP {he.code}: {err_body}"
+            return False
+        except Exception as ex:
+            self.last_error = str(ex)
+            return False
 
     def check_health(self) -> bool:
         """
