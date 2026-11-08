@@ -12,7 +12,11 @@ import {
 import { ApiClient } from '../services/api';
 import { AnalyticsData } from '../types/api';
 
-export const Analytics: React.FC = () => {
+interface AnalyticsProps {
+  modelInfo?: any;
+}
+
+export const Analytics: React.FC<AnalyticsProps> = ({ modelInfo }) => {
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -118,7 +122,7 @@ export const Analytics: React.FC = () => {
         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-3">
           <h3 className="text-sm font-bold text-white flex items-center gap-2">
             <Globe2 className="w-4 h-4 text-emerald-400" />
-            General English Engine Usage (DistilGPT-2)
+            General English Engine Usage ({modelInfo?.modes?.general?.name?.split('(')[0]?.trim() || 'Gemma 4 26B-A4B-IT'})
           </h3>
           <div className="flex justify-between text-xs py-2 border-b border-slate-800">
             <span className="text-slate-400">Next-Word Predictions</span>
@@ -129,14 +133,14 @@ export const Analytics: React.FC = () => {
             <span className="text-emerald-400 font-mono font-semibold">{generalGens}</span>
           </div>
           <div className="text-[11px] text-slate-500">
-            Open-domain causal transformer inference on CPU.
+            Serverless Cloudflare Workers AI Mixture-of-Experts inference (Rank-only #1 - #k).
           </div>
         </div>
 
         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-3">
           <h3 className="text-sm font-bold text-white flex items-center gap-2">
             <TerminalSquare className="w-4 h-4 text-teal-400" />
-            Technical Writing Engine Usage (BiLSTM)
+            Technical Writing Engine Usage (PyTorch BiLSTM)
           </h3>
           <div className="flex justify-between text-xs py-2 border-b border-slate-800">
             <span className="text-slate-400">Next-Token Predictions</span>
@@ -147,7 +151,7 @@ export const Analytics: React.FC = () => {
             <span className="text-teal-400 font-mono font-semibold">{techGens}</span>
           </div>
           <div className="text-[11px] text-slate-500">
-            Custom PyTorch BiLSTM recurrent inference on CPU.
+            Custom PyTorch BiLSTM recurrent inference on CPU (Authentic Softmax).
           </div>
         </div>
       </div>

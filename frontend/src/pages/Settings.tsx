@@ -9,14 +9,16 @@ interface SettingsProps {
   onRefreshHealth: () => void;
   activeMode: WritingMode;
   setActiveMode: (mode: WritingMode) => void;
+  modelInfo?: any;
 }
 
-export const Settings: React.FC<SettingsProps> = ({ 
-  backendUrl, 
-  setBackendUrl, 
+export const Settings: React.FC<SettingsProps> = ({
+  backendUrl,
+  setBackendUrl,
   onRefreshHealth,
   activeMode,
-  setActiveMode 
+  setActiveMode,
+  modelInfo
 }) => {
   const [urlInput, setUrlInput] = useState(backendUrl);
   const [saved, setSaved] = useState(false);
@@ -45,34 +47,32 @@ export const Settings: React.FC<SettingsProps> = ({
       <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
         <h3 className="text-sm font-semibold text-white">Default Writing Mode</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div 
+          <div
             onClick={() => setActiveMode('general')}
-            className={`p-4 rounded-xl border cursor-pointer transition ${
-              activeMode === 'general'
-                ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-300'
-                : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:text-white'
-            }`}
+            className={`p-4 rounded-xl border cursor-pointer transition ${activeMode === 'general'
+              ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-300'
+              : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:text-white'
+              }`}
           >
             <div className="flex items-center gap-2 font-semibold text-sm mb-1 text-white">
               <Globe2 className="w-4 h-4 text-emerald-400" />
-              General English (DistilGPT-2)
+              General English ({modelInfo?.modes?.general?.name?.split('(')[0]?.trim() || 'Gemma 4 26B-A4B-IT'})
             </div>
             <p className="text-xs text-slate-400">
               Open-domain everyday English, emails, creative stories, conversational communication.
             </p>
           </div>
 
-          <div 
+          <div
             onClick={() => setActiveMode('technical')}
-            className={`p-4 rounded-xl border cursor-pointer transition ${
-              activeMode === 'technical'
-                ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-300'
-                : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:text-white'
-            }`}
+            className={`p-4 rounded-xl border cursor-pointer transition ${activeMode === 'technical'
+              ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-300'
+              : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:text-white'
+              }`}
           >
             <div className="flex items-center gap-2 font-semibold text-sm mb-1 text-white">
               <TerminalSquare className="w-4 h-4 text-teal-400" />
-              Technical Writing (BiLSTM)
+              Technical Writing (PyTorch BiLSTM)
             </div>
             <p className="text-xs text-slate-400">
               Specialized in artificial intelligence, machine learning, Python, and data science titles.

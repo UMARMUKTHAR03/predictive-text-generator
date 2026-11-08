@@ -60,7 +60,8 @@ def generate_offline_prompt_manifest(output_path: str = "ml/artifacts/cloudflare
 
 def run_genuine_cloudflare_evaluation(
     provider: Optional[CloudflareWorkersAIProvider] = None,
-    output_path: str = "ml/artifacts/cloudflare_gemma_evaluation.json"
+    output_path: str = "ml/artifacts/cloudflare_gemma_evaluation.json",
+    is_mocked_test: bool = False
 ) -> Dict[str, Any]:
     """
     Executes actual Cloudflare Workers AI inference across the 20 benchmark prompts.
@@ -75,7 +76,7 @@ def run_genuine_cloudflare_evaluation(
         print("Notice: Cloudflare Workers AI credentials unconfigured. Writing offline prompt manifest instead.")
         return generate_offline_prompt_manifest(output_path=output_path if "manifest" in output_path else "ml/artifacts/cloudflare_gemma_prompt_manifest.json")
 
-    print(f"Executing genuine Cloudflare Workers AI evaluation for {provider.model_id}...")
+    print(f"Executing Cloudflare Workers AI evaluation for {provider.model_id} (mocked={is_mocked_test})...")
     results: List[Dict[str, Any]] = []
 
     # Separate operational accounting
@@ -101,6 +102,9 @@ def run_genuine_cloudflare_evaluation(
         gen_error = None
         try:
             gen_continuation, _, tokens, gen_lat = provider.generate_continuation(prompt, max_tokens=15)
+            # Verify actual content presence
+            if not gen_continuation or not gen_continuation.strip():
+                raise ValueError("Received empty continuation text from provider.")
             gen_tokens = [t.token for t in tokens]
             gen_latency = round(gen_lat, 2)
             generation_latencies.append(gen_latency)
@@ -116,7 +120,10 @@ def run_genuine_cloudflare_evaluation(
         pred_error = None
         try:
             cands, _, pred_lat = provider.predict_next_words(prompt, top_k=5)
-            pred_suggestions = [c.word for c in cands]
+            # Verify actual candidate suggestions presence
+            pred_suggestions = [c.word for c in cands if c.word and c.word.strip()]
+            if not pred_suggestions:
+                raise ValueError("Received empty or unusable candidate suggestions from provider.")
             pred_latency = round(pred_lat, 2)
             prediction_latencies.append(pred_latency)
             prediction_successes += 1
@@ -160,8 +167,13 @@ def run_genuine_cloudflare_evaluation(
     all_latencies = generation_latencies + prediction_latencies
     overall_avg_latency = round(sum(all_latencies) / len(all_latencies), 2) if all_latencies else 0.0
 
+    status_label = "mocked_test_evaluated" if is_mocked_test else (
+        "genuine_evaluated" if failed_requests == 0 else ("partial_evaluated" if successful_requests > 0 else "failed_evaluated")
+    )
+
     report = {
-        "status": "genuine_evaluated" if failed_requests == 0 else ("partial_evaluated" if successful_requests > 0 else "failed_evaluated"),
+        "status": status_label,
+        "is_mocked_test": is_mocked_test,
         "model_id": provider.model_id,
         "provider": "Cloudflare Workers AI",
         "timestamp_utc": datetime.now(timezone.utc).isoformat(),

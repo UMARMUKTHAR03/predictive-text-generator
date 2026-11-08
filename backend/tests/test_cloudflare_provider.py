@@ -345,14 +345,20 @@ def test_evaluation_unconfigured_produces_prompt_manifest(monkeypatch, tmp_path)
     assert len(res["prompts"]) == 20
 
 def test_evaluation_configured_mocked_execution(monkeypatch, tmp_path):
+    """
+    Verifies that the evaluation accounting pipeline executes correctly with mocked provider calls.
+    Explicitly marked with is_mocked_test=True to ensure unit tests maintain clear provenance
+    and never label mocked testing as live genuine evaluation.
+    """
     from ml.training.evaluate_cloudflare_general import run_genuine_cloudflare_evaluation
     provider = CloudflareWorkersAIProvider(account_id="mock_acc", api_token="mock_tok")
     test_eval_path = str(tmp_path / "test_eval.json")
 
-    with patch.object(provider, "generate_continuation", return_value=("continuation text", "prompt continuation text", [], 110.0)), \
+    with patch.object(provider, "generate_continuation", return_value=("continuation text", "prompt continuation text", [MagicMock(token="continuation")], 110.0)), \
          patch.object(provider, "predict_next_words", return_value=([PredictionCandidate(word="test", probability=0.0, rank=1)], ["test"], 45.0)):
-        res = run_genuine_cloudflare_evaluation(provider, output_path=test_eval_path)
-        assert res["status"] == "genuine_evaluated"
+        res = run_genuine_cloudflare_evaluation(provider, output_path=test_eval_path, is_mocked_test=True)
+        assert res["status"] == "mocked_test_evaluated"
+        assert res["is_mocked_test"] is True
         assert res["total_prompts"] == 20
         assert res["total_operations"] == 40
         assert res["total_inference_requests"] == 40

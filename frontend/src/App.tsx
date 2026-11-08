@@ -67,7 +67,7 @@ export function App() {
           <ModelIntelligence modelInfo={modelInfo} />
         )}
         {activeTab === 'analytics' && (
-          <Analytics />
+          <Analytics modelInfo={modelInfo} />
         )}
         {activeTab === 'settings' && (
           <Settings
@@ -76,6 +76,7 @@ export function App() {
             onRefreshHealth={fetchHealthAndInfo}
             activeMode={activeMode}
             setActiveMode={setActiveMode}
+            modelInfo={modelInfo}
           />
         )}
       </main>

@@ -1,4 +1,6 @@
 {
+  "status": "synthetic_placeholder_not_evaluation",
+  "archived_for": "Historical repository audit only - DO NOT USE AS REAL EVALUATION EVIDENCE",
   "model_id": "@cf/google/gemma-4-26b-a4b-it",
   "provider": "Cloudflare Workers AI",
   "live_credentials_present": false,

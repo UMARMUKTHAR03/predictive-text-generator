@@ -130,7 +130,7 @@ export const WritingStudio: React.FC<WritingStudioProps> = ({ activeMode, setAct
             }`}
           >
             <Globe2 className="w-4 h-4" />
-            General English (DistilGPT-2)
+            General English ({modelInfo?.modes?.general?.name?.split('(')[0]?.trim() || 'Gemma 4 26B-A4B-IT'})
           </button>
           <button
             onClick={() => handleModeChange('technical')}
@@ -151,9 +151,15 @@ export const WritingStudio: React.FC<WritingStudioProps> = ({ activeMode, setAct
           <div className="flex items-center gap-3">
             <Info className="w-5 h-5 shrink-0 text-rose-400" />
             <div>
-              <p className="font-semibold text-rose-200">General English Service Offline</p>
+              <p className="font-semibold text-rose-200">General English Provider Issue</p>
               <p className="text-xs text-rose-300/80 mt-0.5">
-                The isolated General Inference Service (DistilGPT-2) requires &ge;1 GB RAM and is hosted separately from the Technical service. Technical Writing (BiLSTM) remains 100% operational.
+                {error.includes('503') 
+                  ? 'Cloudflare Workers AI credentials not configured on backend. Set CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN.'
+                  : error.includes('429')
+                    ? 'Cloudflare Workers AI rate limit or free daily quota (10,000 Neurons/day) exceeded.'
+                    : error.includes('502')
+                      ? 'Cloudflare Workers AI upstream response empty or malformed. Fall-back safety prevented invalid predictions.'
+                      : `${error}. Technical Writing (PyTorch BiLSTM) remains 100% operational on local CPU.`}
               </p>
             </div>
           </div>

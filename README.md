@@ -2,7 +2,7 @@
 
 [![CI & GitHub Pages Deployment](https://github.com/UMARMUKTHAR03/predictive-text-generator/actions/workflows/ci.yml/badge.svg)](https://github.com/UMARMUKTHAR03/predictive-text-generator/actions/workflows/ci.yml)
 [![FastAPI Tests](https://img.shields.io/badge/pytest-61%20passed%2C%209%20skipped-brightgreen?logo=pytest)](https://github.com/UMARMUKTHAR03/predictive-text-generator)
-[![Frontend Tests](https://img.shields.io/badge/vitest-2%20passed-brightgreen?logo=vitest)](https://github.com/UMARMUKTHAR03/predictive-text-generator)
+[![Frontend Tests](https://img.shields.io/badge/vitest-8%20passed-brightgreen?logo=vitest)](https://github.com/UMARMUKTHAR03/predictive-text-generator)
 [![Python](https://img.shields.io/badge/Python-3.11%20%7C%203.13-blue?logo=python)](https://www.python.org/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.15%20CPU-EE4C2C?logo=pytorch)](https://pytorch.org/)
 [![Cloudflare Workers AI](https://img.shields.io/badge/Workers%20AI-Gemma%204%20MoE-F38020?logo=cloudflare)](https://developers.cloudflare.com/workers-ai/)
@@ -71,49 +71,53 @@ flowchart TD
 
 ---
 
-## Model Selection & Benchmark Analysis
+## Model Selection & Dual Production Architecture
 
-### 1. General English Model: `distilbert/distilgpt2`
-- **Architecture**: 6-layer Transformer, 768 hidden dimension, 12 attention heads.
-- **Parameters**: 81,912,576 (~82M).
-- **Pinned Revision**: `2290a62682d06624634c1f46a6ad5be0f47f38aa` (Apache 2.0).
-- **Justification**: Compared systematically against `EleutherAI/pythia-70m` on identical benchmark prompts. DistilGPT-2 produced superior semantic coherence, clean sentence boundaries, and natural syntax without degenerate repetitions.
-- **Whole-Word Extraction**: Implemented candidate extraction with GPT-2 byte-level BPE boundary handling (` ` / `Ġ`), supporting both complete word prompts (with or without trailing whitespace) and partial word continuations, without returning isolated subword fragments or punctuation.
+NeuroText AI V2 strictly separates its **active production deployment architecture** from **historical and experimental research benchmarks**:
 
-#### General English Output Samples:
-- `"The weather is very"` $\rightarrow$ Top Candidates: `good` (12.2%), `cold` (7.6%), `warm` (4.6%). Continuation: *"The weather is very good, and the wind will be strong enough to keep it from blowing into..."*
-- `"I am writing this email to"` $\rightarrow$ Top Candidates: `the` (6.5%), `ask` (4.8%), `say` (3.8%). Continuation: *"I am writing this email to the editor of The Atlantic. The article is part of a series on..."*
-- `"The future of artificial intelligence"` $\rightarrow$ Top Candidates: `is` (22.5%), `will` (11.3%). Continuation: *"The future of artificial intelligence is not yet clear. We are still in the early stages of..."*
+### 1. Production Models (Active in Deployment)
 
-### 2. Technical Writing Model: Custom PyTorch BiLSTM
+#### A. General English Writing: Google Gemma 4 26B-A4B-IT (`@cf/google/gemma-4-26b-a4b-it`)
+- **Hosting Provider**: Serverless Cloudflare Workers AI OpenAI-compatible chat completions interface.
+- **Architecture**: Mixture-of-Experts (MoE) with 26B total and 4B active parameters.
+- **RAM Footprint on Render**: **0 MB** (alleviating the Render Free 512 MB ceiling completely).
+- **Prediction Semantics**: Strictly rank-only next-word suggestions (`rank = 1..top_k`) with unmeasured probability reported honestly as `0.0` (zero fabricated probabilities).
+- **Thinking Mode Control**: Reasoner mode explicitly bypassed (`"chat_template_kwargs": {"enable_thinking": false}`) with a 96-token prediction generation budget to prevent internal thought chains from exhausting token budgets.
+- **License**: Apache 2.0 (Google Gemma Terms & Apache 2.0).
+
+#### B. Technical Writing: Custom PyTorch Bidirectional LSTM (3.2M Parameters)
+- **Hosting Provider**: Local PyTorch CPU runtime inside the FastAPI application container on Render Free.
 - **Architecture**: Embedding (100d) $\rightarrow$ Bidirectional LSTM (150 units per direction, 300d concatenated representation) $\rightarrow$ Linear projection head (7,299 logits).
-- **Parameters**: 3,229,299 (~3.2M).
-- **Dataset**: 6,508 authentic Medium technical publications (`medium_data.csv`).
-- **Data Partitioning**: Title-level leak-free split (80% Train, 10% Val, 10% Holdout Test) executed **before** sequence generation to guarantee 0% train-test data leakage.
+- **RAM Footprint on Render**: **381.08 MB peak RSS** (130+ MB safe operating headroom below Render Free 512 MB limit).
+- **Latency & Performance**: Sub-5ms forward-pass inference on CPU.
+- **Prediction Semantics**: Authentic Softmax-based probability distributions over a 7,299 technical vocabulary.
+- **Dataset & Leak-Free Validation**: Trained on 6,508 authentic Medium technical publications (`medium_data.csv`) using a title-level leak-free split (80% Train, 10% Val, 10% Holdout Test) executed **before** sequence generation to guarantee 0% train-test data leakage.
+- **Holdout Test Benchmark (4,862 Unseen Sequences)**: **15.18% Top-1**, **27.44% Top-5**, 587.82 Perplexity.
 
-#### Holdout Test Benchmark (4,862 Unseen Sequences):
-| Evaluation Metric | Random Guessing | Unigram Frequency Baseline | **NeuroText BiLSTM (Current)** | Historical Notebook (Train Only) |
-| :--- | :---: | :---: | :---: | :---: |
-| **Top-1 Accuracy** | 0.014% | 3.56% (word: `to`) | **15.18%** | 54.60% (No split, evaluated on train) |
-| **Top-3 Accuracy** | 0.041% | 8.54% | **22.79%** | — |
-| **Top-5 Accuracy** | 0.068% | 12.92% | **27.44%** | — |
-| **Top-10 Accuracy** | 0.137% | 21.43% | **34.45%** | — |
-| **Cross-Entropy Loss** | 8.89 | 7.82 | **6.3764** | 2.0090 |
-| **Perplexity** | 7,299 | 2,489 | **587.82** | 7.45 |
+---
 
-### Verified Latency Breakdown (CPU Benchmark)
+### 2. Historical & Experimental Research Models (Preserved in Codebase)
+
+#### A. Historical Baseline: `distilbert/distilgpt2` FP32 (82M Parameters)
+- **Role**: Baseline research causal transformer evaluated for local general English inference.
+- **Pinned Revision**: `2290a62682d06624634c1f46a6ad5be0f47f38aa` (Apache 2.0).
+- **Whole-Word Extraction**: Byte-level BPE boundary handling (` ` / `Ġ`) supporting complete word prompts and partial word continuations.
+- **Hosting Constraint**: Loading idle weights and running active autoregressive generation consumes **714.15 MB peak RSS**, exceeding the Render Free 512 MB memory limit and triggering Linux OOM termination (`SIGKILL`). Preserved in [`backend/app/services/general_model_service.py`](backend/app/services/general_model_service.py) and can be executed via an isolated external microservice (`backend/app/general_main.py`) or with explicit local opt-in (`ALLOW_LOCAL_GENERAL=true`) on $\ge$1 GB RAM machines.
+
+#### B. Experimental INT8 Optimization: DistilGPT-2 Dynamic Quantization (ONNX Runtime)
+- **Role**: Empirical investigation of INT8 dynamic quantization for CPU causal language models.
+- **Benchmark Findings**: Quantization reduced model file size from 312.47 MB to 85.5 MB, but peak process RSS reached **552.71 MB RSS** due to ONNX Runtime memory pooling and caching, remaining above the 512 MB Render ceiling. Preserved in [`backend/app/services/experimental_onnx_service.py`](backend/app/services/experimental_onnx_service.py).
+
+#### Historical Research Latency Breakdown (CPU Benchmark)
 All metrics benchmarked across 75 evaluations over 5 distinct contexts with warm cache ([`ml/artifacts/general_latency_benchmark.json`](ml/artifacts/general_latency_benchmark.json)):
 
 | Component / Task | Median | Mean | P95 | Min / Max |
 | :--- | :---: | :---: | :---: | :---: |
 | **BiLSTM Single-Item Forward Pass** | **2.35 ms** | 3.32 ms | 5.12 ms | 1.82 / 6.45 ms |
 | **BiLSTM Full Local Prediction Service** | **4.24 ms** | 5.58 ms | 8.92 ms | 3.10 / 12.40 ms |
-| **DistilGPT-2 Model Forward Pass** | **41.57 ms** | 41.93 ms | 55.09 ms | 32.36 / 68.16 ms |
-| **DistilGPT-2 Tokenization + Forward Pass** | **40.94 ms** | 41.54 ms | 49.75 ms | 30.26 / 60.70 ms |
-| **DistilGPT-2 Candidate Extraction Overhead** | **0.72 ms** | 0.77 ms | 1.31 ms | 0.48 / 2.17 ms |
-| **DistilGPT-2 Full Local Prediction Service** | **39.91 ms** | 45.92 ms | 65.23 ms | 30.50 / 245.70 ms |
-| **DistilGPT-2 10-Token Sequential Generation** | **251.55 ms** | 258.40 ms | 360.64 ms | 234.30 / 362.43 ms |
-| **Historical Amortized DataLoader Latency** | *0.331 ms* | — | — | (batch_size=256 DataLoader) |
+| **DistilGPT-2 (Research) Model Forward Pass** | **41.57 ms** | 41.93 ms | 55.09 ms | 32.36 / 68.16 ms |
+| **DistilGPT-2 (Research) Full Local Prediction Service** | **39.91 ms** | 45.92 ms | 65.23 ms | 30.50 / 245.70 ms |
+| **DistilGPT-2 (Research) 10-Token Sequential Generation** | **251.55 ms** | 258.40 ms | 360.64 ms | 234.30 / 362.43 ms |
 
 ---
 
@@ -149,28 +153,56 @@ Detailed empirical memory audit conducted with reproducible process tracking ([`
 ### `POST /predict`
 Request next-word suggestions for either model mode.
 
+**Request (General English - Cloudflare Gemma 4):**
 ```json
 {
   "text": "The future of artificial intelligence",
   "mode": "general",
-  "top_k": 5,
+  "top_k": 3,
   "temperature": 1.0
 }
 ```
 
-Response:
+**Response (General English - Rank-Only):**
 ```json
 {
   "input_text": "The future of artificial intelligence",
   "mode": "general",
-  "tokens": ["The", "Ġfuture", "Ġof", "Ġartificial", "Ġintelligence"],
+  "tokens": ["The", "future", "of", "artificial", "intelligence"],
   "candidates": [
-    { "word": "is", "probability": 0.2253, "rank": 1 },
-    { "word": "will", "probability": 0.1128, "rank": 2 },
-    { "word": "and", "probability": 0.0644, "rank": 3 }
+    { "word": "is", "probability": 0.0, "rank": 1 },
+    { "word": "will", "probability": 0.0, "rank": 2 },
+    { "word": "holds", "probability": 0.0, "rank": 3 }
   ],
-  "latency_ms": 46.2,
-  "model_name": "DistilGPT-2 (General English)",
+  "latency_ms": 112.5,
+  "model_name": "Gemma 4 26B-A4B-IT (General English)",
+  "model_version": "2.0.0"
+}
+```
+
+**Request (Technical Writing - PyTorch BiLSTM):**
+```json
+{
+  "text": "Deep neural networks are",
+  "mode": "technical",
+  "top_k": 3,
+  "temperature": 1.0
+}
+```
+
+**Response (Technical Writing - Authentic Softmax Probabilities):**
+```json
+{
+  "input_text": "Deep neural networks are",
+  "mode": "technical",
+  "tokens": ["deep", "neural", "networks", "are"],
+  "candidates": [
+    { "word": "used", "probability": 0.2314, "rank": 1 },
+    { "word": "trained", "probability": 0.1428, "rank": 2 },
+    { "word": "becoming", "probability": 0.0891, "rank": 3 }
+  ],
+  "latency_ms": 3.8,
+  "model_name": "Technical Writing (PyTorch BiLSTM)",
   "model_version": "2.0.0"
 }
 ```
@@ -178,6 +210,7 @@ Response:
 ### `POST /generate`
 Generate multi-token sequential continuations.
 
+**Request (General English):**
 ```json
 {
   "prompt": "I am writing this email to",
@@ -188,17 +221,20 @@ Generate multi-token sequential continuations.
 }
 ```
 
-Response:
+**Response (General English):**
 ```json
 {
   "prompt": "I am writing this email to",
   "mode": "general",
-  "generated_text": "the editor of The Atlantic. The article is part of a series on",
-  "completed_text": "I am writing this email to the editor of The Atlantic. The article is part of a series on",
-  "tokens_generated": [ ... ],
+  "generated_text": "confirm our appointment scheduled for tomorrow morning at nine.",
+  "completed_text": "I am writing this email to confirm our appointment scheduled for tomorrow morning at nine.",
+  "tokens_generated": [
+    { "token": "confirm", "probability": 0.0 },
+    { "token": "our", "probability": 0.0 }
+  ],
   "strategy_used": "greedy",
-  "latency_ms": 182.4,
-  "model_name": "DistilGPT-2 (General English)"
+  "latency_ms": 138.2,
+  "model_name": "Gemma 4 26B-A4B-IT (General English)"
 }
 ```
 
@@ -249,7 +285,7 @@ npm run dev
   - `backend/tests/test_model_integration.py`: 5 / 5 passed.
   - `backend/tests/test_experimental_onnx.py`: 1 passed, 9 skipped in clean CI environments where gitignored ONNX model weights (`ml/artifacts/onnx/distilgpt2_int8/model_quantized.onnx`) are omitted from version control.
 - **Skipped Tests Policy**: Tests requiring local ONNX weights gracefully skip in clean checkout environments without failing the test suite; artifact validation tests (`test_onnx_memory_benchmark_artifact_validation`) execute and pass unconditionally against genuine JSON benchmark artifacts. CI runs strictly offline without billable API calls.
-- **Frontend Test Suite (Vitest)**: **2 / 2 passed** (Navbar dual-mode rendering, Dashboard engine cards).
+- **Frontend Test Suite (Vitest)**: **8 / 8 passed** (Navbar dual-mode rendering, Dashboard engine cards, WritingStudio dynamic Gemma 4 identity and rank-only candidate presentation, WritingStudio Technical BiLSTM authentic probability presentation, provider error handling, ModelIntelligence dynamic specifications, Analytics telemetry counters, Navbar health pill states).
 - **Production Build (Vite & TypeScript)**: Compiled cleanly with zero errors.
 - **GitHub Pages Deployment**: Automated through `.github/workflows/ci.yml` targeting `gh-pages` branch.
 - **Render Backend Blueprint**: Configured in `render.yaml`. The web service is provisionable on Render with Python 3.11.

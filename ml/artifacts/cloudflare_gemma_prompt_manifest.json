@@ -2,7 +2,7 @@
   "status": "unevaluated_offline_manifest",
   "description": "Standardized 20-prompt evaluation manifest for Google Gemma 4 26B-A4B-IT on Cloudflare Workers AI.",
   "model_id": "@cf/google/gemma-4-26b-a4b-it",
-  "timestamp_utc": "2026-11-07T22:14:36.811278+00:00",
+  "timestamp_utc": "2026-11-08T07:33:07.493115+00:00",
   "prompt_count": 20,
   "categories": [
     "Email",
